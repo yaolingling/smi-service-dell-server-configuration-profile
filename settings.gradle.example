@@ -1,0 +1,4 @@
+include ':wsmanlib'
+project(':wsmanlib').projectDir = new File(settingsDir, '../wsmanlib')
+include ':service-fileshare-services'
+project(':service-fileshare-services').projectDir = new File(settingsDir, '../service-fileshare-services/')
