@@ -1,0 +1,11 @@
+[Unit]
+Description=dell-server-configuration-profile
+After=syslog.target
+
+[Service]
+User=devuser
+ExecStart=/opt/dell/server-configuration-profile/application.jar
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
