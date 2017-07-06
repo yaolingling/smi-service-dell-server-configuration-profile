@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
 import com.dell.isg.smi.service.server.configuration.manager.IConfigurationManager;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
 import com.dell.isg.smi.service.server.configuration.model.MessageKey;
@@ -52,6 +53,9 @@ public class ConfigurationController {
 
     @Autowired
     IConfigurationManager configurationManager;
+    
+    @Autowired
+    NfsYAMLConfiguration yamlConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class.getName());
 
@@ -134,9 +138,12 @@ public class ConfigurationController {
             if (initialized) {
                 serverComponents = configurationManager.getComponents(request);
                 String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+                if (CollectionUtils.isEmpty(serverComponents)) {                    
+                    requestMsg = messageSource.getMessage("Request.No.ServerComponents", null, Locale.getDefault());
+                }
                 ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg);
                 serviceResponse.setServerComponents(serverComponents);
-                ConfigurationUtils.removeRandomFile(request);
+                ConfigurationUtils.removeRandomFile(request, yamlConfig);
                 return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
             } else {
                 logger.error("Failed to mount the network share and initializing failed.");
@@ -173,7 +180,7 @@ public class ConfigurationController {
             if (initialized) {
                 updatedComponents = configurationManager.updateComponents(request);
                 XmlConfig xmlConfig = configurationManager.importConfiguration(serverAndNetworkShareRequest);
-                ConfigurationUtils.removeRandomFile(serverAndNetworkShareRequest);
+                ConfigurationUtils.removeRandomFile(serverAndNetworkShareRequest, yamlConfig);
 
                 String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
                 if (CollectionUtils.isEmpty(updatedComponents)) {

@@ -12,6 +12,9 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.dell.isg.smi.commons.model.credential.PasswordCredential;
 import com.dell.isg.smi.commons.model.fileshare.FileShare;
 import com.dell.isg.smi.commons.model.fileshare.FileShareTypeEnum;
 import com.dell.isg.smi.commons.utilities.fileshare.FileShareService;
@@ -61,17 +64,29 @@ public class ConfigurationUtils {
      * @return
      * @throws Exception
      */
-    public static Boolean mountNFS(ServerAndNetworkShareRequest request, NfsYAMLConfiguration yamlConfig) throws Exception {
+    public static Boolean mount(ServerAndNetworkShareRequest request, NfsYAMLConfiguration yamlConfig) throws Exception {
         Boolean result = true;
         try {
-            if (null != request && null != yamlConfig && !fileExist("/shares/remote" + request.getShareName())) {
+            if (null != request && null != yamlConfig && !fileExist("/shares/remote/" + request.getShareName())) {
                 logger.info("Mount doesn't exist. Creating a mount for " + request.getFilePathName());
                 FileShareService fileShareService = new FileShareService();
                 FileShare fileShare = new FileShare();
                 fileShare.setAddress(request.getShareAddress());
                 fileShare.setName(request.getShareName()); // Share name will be used as mount location folder name
                 fileShare.setPath(request.getShareName()); // this is the path of remote share
-                FileShareTypeEnum type = FileShareTypeEnum.NFS;
+                int shareType = request.getShareType();
+                
+                FileShareTypeEnum type = null;
+                if (shareType==0) {
+                	type = FileShareTypeEnum.NFS;
+                } else if (shareType==2) {
+					type = FileShareTypeEnum.CIFS;
+					PasswordCredential passwordCreds = new PasswordCredential();
+	                passwordCreds.setUsername(request.getShareUsername());
+	                passwordCreds.setPassword(request.getSharePassword());
+	                fileShare.setPasswordCredential(passwordCreds);
+				}        
+                
                 fileShare.setType(type);
                 fileShare.setScriptName(yamlConfig.getScript_name());
                 fileShare.setScriptDirectory(yamlConfig.getScript_directory());
@@ -126,7 +141,7 @@ public class ConfigurationUtils {
     }
 
 
-    public static void removeRandomFile(ServerAndNetworkShareRequest request) {
+    public static void removeRandomFile(ServerAndNetworkShareRequest request, NfsYAMLConfiguration yamlConfig) {
         try {
             if (null != request && request.isRandomFile()) {
                 String filePathName = request.getFilePathName();
@@ -136,11 +151,24 @@ public class ConfigurationUtils {
                     logger.info("Removed the random file " + filePathName);
                 }
             }
+            if (null != request && null != yamlConfig) {            	
+            	String shareName = request.getShareName();
+            	if (StringUtils.isNotBlank(shareName)) {
+            		FileShareService fileShareService = new FileShareService();
+            		FileShare fileShare = new FileShare();
+            		fileShare.setName(shareName);
+            		String scriptName = yamlConfig.getScript_name();
+            		String scriptDirectory = yamlConfig.getScript_directory();
+            		fileShare.setScriptName(scriptName);
+            		fileShare.setScriptDirectory(scriptDirectory);
+            		Boolean unmounted = fileShareService.unmount(fileShare);
+            		logger.info("unmounted " + shareName + " status: " + unmounted);            		
+            	}
+            }
 
         } catch (Exception e) {
-            logger.error("Could not remove the random file.");
+            logger.error("Could not remove the random file/unmount failed.");
         }
 
     }
-
 }
