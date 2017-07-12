@@ -57,6 +57,9 @@ public class ServerAndNetworkShareRequest {
 
     @ApiModelProperty(hidden = true)
     private boolean randomFile;
+    
+    @ApiModelProperty(hidden = true)
+    private String sharePath;
 
 
     /**
@@ -265,4 +268,20 @@ public class ServerAndNetworkShareRequest {
     public void setRandomFile(boolean randomFile) {
         this.randomFile = randomFile;
     }
+
+
+	/**
+	 * @return the sharePath
+	 */
+	public String getSharePath() {
+		return sharePath;
+	}
+
+
+	/**
+	 * @param sharePath the sharePath to set
+	 */
+	public void setSharePath(String sharePath) {
+		this.sharePath = sharePath;
+	}
 }

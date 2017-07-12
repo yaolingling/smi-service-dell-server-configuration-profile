@@ -273,8 +273,9 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
                     serverAndNetworkShareRequest.setFileName(fileName);
                     serverAndNetworkShareRequest.setRandomFile(true);
                 }
-                
-                filePathName = "/shares/remote/" + serverAndNetworkShareRequest.getShareName() + "/" + fileName;
+                String randomShareName = ConfigurationUtils.getUniqueFileName();
+                serverAndNetworkShareRequest.setSharePath(randomShareName);                
+                filePathName = "/shares/remote/" + randomShareName + "/" + fileName;
                 serverAndNetworkShareRequest.setFilePathName(filePathName);
                 logger.info("updateRequestDetails: FilePathName: " + filePathName);
             }

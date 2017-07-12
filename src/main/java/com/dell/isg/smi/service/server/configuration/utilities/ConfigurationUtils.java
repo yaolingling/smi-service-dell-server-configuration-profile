@@ -67,12 +67,12 @@ public class ConfigurationUtils {
     public static Boolean mount(ServerAndNetworkShareRequest request, NfsYAMLConfiguration yamlConfig) throws Exception {
         Boolean result = true;
         try {
-            if (null != request && null != yamlConfig && !fileExist("/shares/remote/" + request.getShareName())) {
+            if (null != request && null != yamlConfig && !fileExist("/shares/remote/" + request.getSharePath())) {
                 logger.info("Mount doesn't exist. Creating a mount for " + request.getFilePathName());
                 FileShareService fileShareService = new FileShareService();
                 FileShare fileShare = new FileShare();
                 fileShare.setAddress(request.getShareAddress());
-                fileShare.setName(request.getShareName()); // Share name will be used as mount location folder name
+                fileShare.setName(request.getSharePath()); // SharePath will be used as mount location folder name
                 fileShare.setPath(request.getShareName()); // this is the path of remote share
                 int shareType = request.getShareType();
                 
@@ -111,7 +111,7 @@ public class ConfigurationUtils {
      * @return RandomAlphanumeric String
      */
     public static String getUniqueFileName() {
-        String fileName = RandomStringUtils.randomAlphanumeric(10) + ".xml";
+        String fileName = RandomStringUtils.randomAlphanumeric(10);
         return fileName;
     }
 
@@ -152,7 +152,7 @@ public class ConfigurationUtils {
                 }
             }
             if (null != request && null != yamlConfig) {            	
-            	String shareName = request.getShareName();
+            	String shareName = request.getSharePath();
             	if (StringUtils.isNotBlank(shareName)) {
             		FileShareService fileShareService = new FileShareService();
             		FileShare fileShare = new FileShare();
