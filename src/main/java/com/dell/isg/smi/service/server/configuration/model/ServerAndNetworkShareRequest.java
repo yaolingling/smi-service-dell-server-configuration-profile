@@ -31,7 +31,7 @@ public class ServerAndNetworkShareRequest {
     @ApiModelProperty(value = "Type of share: NFS=0, CIFS=2", required = true)
     private int shareType;
 
-    @ApiModelProperty(value = "The directory path to the mount point.", dataType = "string")
+    @ApiModelProperty(value = "The shared directory name on the server being exported. Not the location.", dataType = "string")
     private String shareName;
 
     @ApiModelProperty(value = "The IP address of the target export server", dataType = "string")
