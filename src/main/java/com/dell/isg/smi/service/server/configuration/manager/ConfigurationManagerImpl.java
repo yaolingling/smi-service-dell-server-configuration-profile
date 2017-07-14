@@ -111,24 +111,37 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
      * @return List of ServerComponents in a SystemConfiguration
      * @throws Exception
      */
-    private List<ServerComponent> getServerComponents(SystemConfiguration systemConfig, ServerAndNetworkShareRequest request) throws Exception {
-        List<ServerComponent> extractedComponents = new LinkedList<ServerComponent>();
+	private List<ServerComponent> getServerComponents(SystemConfiguration systemConfig,
+			ServerAndNetworkShareRequest request) throws Exception {
+		List<ServerComponent> extractedComponents = new LinkedList<ServerComponent>();
 
-        try {
-            List<ServerComponent> serverComponents = systemConfig.getServerComponents();
-            List<String> componentNames = request.getComponentNames();
+		try {
+			List<ServerComponent> serverComponents = systemConfig.getServerComponents();
+			List<String> componentNames = request.getComponentNames();
+			List<String> temp = new LinkedList<String>();
 
-            if (CollectionUtils.isNotEmpty(componentNames)) {
-                for (ServerComponent serverComponent : serverComponents) {
-                    for (String componentName : componentNames) {
-                        if (StringUtils.equals(componentName, serverComponent.getFQDD())) {
-                            extractedComponents.add(serverComponent);
-                        }
-                    }
-                }
-            } else {
-                extractedComponents.addAll(serverComponents);
-            }
+			if (CollectionUtils.isNotEmpty(componentNames)) {
+				for (String reqCompName : componentNames) {
+					if (StringUtils.isNotBlank(reqCompName)) {
+						temp.add(reqCompName);
+					}
+				}
+
+				if (CollectionUtils.isNotEmpty(temp)) {
+					for (String componentName : temp) {
+						for (ServerComponent serverComponent : serverComponents) {
+							if (StringUtils.equals(componentName, serverComponent.getFQDD())) {
+								extractedComponents.add(serverComponent);
+							}
+						}
+					}
+				} else {
+					extractedComponents.addAll(serverComponents);
+				}
+
+			} else {
+				extractedComponents.addAll(serverComponents);
+			}
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -232,7 +245,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
     @Override
     public Boolean initializeSCPService(ServerAndNetworkShareRequest request) throws Exception {
         updateRequestDetails(request);
-        Boolean mounted = ConfigurationUtils.mountNFS(request, yamlConfig);
+        Boolean mounted = ConfigurationUtils.mount(request, yamlConfig);
         if (mounted && !ConfigurationUtils.fileExist(request.getFilePathName())) {
             logger.info("initializeSCPService: File doesn't exist. Exporting the config file from ther server");
             exportConfiguration(request);
@@ -253,7 +266,6 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
         try {
             String filePathName = "";
             if (null != serverAndNetworkShareRequest) {
-                String shareAddress = serverAndNetworkShareRequest.getShareAddress();
                 String fileName = serverAndNetworkShareRequest.getFileName();
                 if (StringUtils.isBlank(fileName)) {
                     logger.info("updateRequestDetails: No FileName in Request. Generating Random FileName and updating the request");
@@ -261,18 +273,10 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
                     serverAndNetworkShareRequest.setFileName(fileName);
                     serverAndNetworkShareRequest.setRandomFile(true);
                 }
-
-                if (StringUtils.isBlank(shareAddress)) {
-                    // Get RackHD NFS and update
-                    serverAndNetworkShareRequest.setShareAddress("");
-                    serverAndNetworkShareRequest.setShareName("nfs");
-                    serverAndNetworkShareRequest.setFileName(fileName);
-                    filePathName = "/shares/remote/nfs/" + fileName;
-                    serverAndNetworkShareRequest.setFilePathName(filePathName);
-                } else {
-                    filePathName = "/shares/remote" + serverAndNetworkShareRequest.getShareName() + "/" + fileName;
-                    serverAndNetworkShareRequest.setFilePathName(filePathName);
-                }
+                String randomShareName = ConfigurationUtils.getUniqueFileName();
+                serverAndNetworkShareRequest.setSharePath(randomShareName);                
+                filePathName = "/shares/remote/" + randomShareName + "/" + fileName;
+                serverAndNetworkShareRequest.setFilePathName(filePathName);
                 logger.info("updateRequestDetails: FilePathName: " + filePathName);
             }
         } catch (Exception e) {

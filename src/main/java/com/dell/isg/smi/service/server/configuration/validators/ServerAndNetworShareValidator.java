@@ -41,8 +41,15 @@ public class ServerAndNetworShareValidator implements Validator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "shareName", "NotEmpty.shareName");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "shareAddress", "NotEmpty.shareAddress");
         // ValidationUtils.rejectIfEmptyOrWhitespace(errors, "fileName", "NotEmpty.fileName");
-        // ValidationUtils.rejectIfEmptyOrWhitespace(errors, "shareUsername", "NotEmpty.shareUsername");
-        // ValidationUtils.rejectIfEmptyOrWhitespace(errors, "sharePassword", "NotEmpty.sharePassword");
+        
+        
+        int shareType = obj.getShareType();
+        
+        if (shareType ==2) {
+        	ValidationUtils.rejectIfEmptyOrWhitespace(errors, "shareUsername", "NotEmpty.shareUsername");
+        	ValidationUtils.rejectIfEmptyOrWhitespace(errors, "sharePassword", "NotEmpty.sharePassword");
+        }
+        
 
         String serverIPAddress = obj.getServerIP();
         String shareAddress = obj.getShareAddress();

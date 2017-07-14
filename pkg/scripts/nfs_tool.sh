@@ -54,7 +54,7 @@ function mountRemoteShare
 			url=${shareAddress}:${sharePath}
 		;;
 		CIFS)
-			url="//${shareAddress}${sharePath}"
+			url="//${shareAddress}/${sharePath}"
 			credentials="-o username=${shareUsername},password=${sharePassword}"
 		;;
 	esac	
