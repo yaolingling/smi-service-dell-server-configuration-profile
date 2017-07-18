@@ -15,7 +15,7 @@ public interface IConfigurationManager {
     public XmlConfig importConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest) throws Exception;
 
 
-    public XmlConfig exportConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest) throws Exception;
+    public XmlConfig exportConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest, String exportMode) throws Exception;
 
 
     public List<ServerComponent> getComponents(ServerAndNetworkShareRequest request) throws Exception;
