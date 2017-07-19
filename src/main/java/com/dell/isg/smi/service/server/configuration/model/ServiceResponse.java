@@ -36,9 +36,11 @@ public class ServiceResponse {
 
     @ApiModelProperty(value = "The ServerComponent. Which has the FQDD, Attributes and nested components", dataType = "string", required = false)
     private List<ServerComponent> serverComponents;
+    
+    @ApiModelProperty(value = "The Result. Which has the details of preview import configuration Result returned from DELL Server", required = false)
+    private Object result;
 
-
-    public ServiceResponse(HttpStatus status, String message) {
+	public ServiceResponse(HttpStatus status, String message) {
         super();
         this.status = status;
         this.message = message;
@@ -66,6 +68,13 @@ public class ServiceResponse {
         this.status = status;
         this.message = message;
         this.error = error;
+    }
+    
+    public ServiceResponse(HttpStatus status, String message, Object result) {
+        super();
+        this.status = status;
+        this.message = message;
+        this.setXmlConfig(xmlConfig);
     }
 
 
@@ -135,6 +144,15 @@ public class ServiceResponse {
     public void setXmlConfig(XmlConfig xmlConfig) {
         this.xmlConfig = xmlConfig;
     }
+    
+    public Object getResult() {
+		return result;
+	}
+
+
+	public void setResult(Object result) {
+		this.result = result;
+	}
 
 
     /**

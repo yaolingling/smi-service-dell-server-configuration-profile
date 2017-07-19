@@ -26,4 +26,7 @@ public interface IConfigurationManager {
 
     public Boolean initializeSCPService(ServerAndNetworkShareRequest request) throws Exception;
 
+
+	public Object previewConfiguration(ServerAndNetworkShareRequest request) throws Exception;
+
 }

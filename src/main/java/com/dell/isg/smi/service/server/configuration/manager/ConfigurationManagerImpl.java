@@ -76,6 +76,25 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 
 		return serverAdapterImpl.applyServerConfig(wsmanCredentials, networkShare, request.getShutdownType());
 	}
+	
+	@Override
+	public Object previewConfiguration(ServerAndNetworkShareRequest request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
+				request.getServerPassword());
+
+		NetworkShare networkShare = new NetworkShare();
+		networkShare.setShareType(SHARE_TYPES.valueOf(String.valueOf(request.getShareType())));
+		networkShare.setShareName(request.getShareName());
+		networkShare.setShareAddress(request.getShareAddress());
+		networkShare.setFileName(request.getFileName());
+		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setSharePassword(request.getSharePassword());
+		
+		XmlConfig config = serverAdapterImpl.previewImportServerConfig(wsmanCredentials, networkShare);
+		Object result = serverAdapterImpl.previewConfigResults(wsmanCredentials, config.getJobID());
+		
+		return result;
+	}
 
 	@Override
 	public XmlConfig exportConfiguration(ServerAndNetworkShareRequest request, String exportMode) throws Exception {
