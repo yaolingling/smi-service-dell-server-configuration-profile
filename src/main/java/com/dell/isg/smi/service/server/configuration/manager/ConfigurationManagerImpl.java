@@ -133,7 +133,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	}
 	
 	@Override
-	public XmlConfig exportRegistry(ServerAndNetworkShareRequest request) throws Exception {
+	public XmlConfig exportInventory(ServerAndNetworkShareRequest request) throws Exception {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
 

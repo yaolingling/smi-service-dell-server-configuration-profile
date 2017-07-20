@@ -228,9 +228,9 @@ public class ConfigurationController {
      * @return
      * @throws Exception - On failure 
      */
-    @RequestMapping(value = "/exportRegistry", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @RequestMapping(value = "/exportInventory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Export Attribute Configuration", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
-    public ResponseEntity<ServiceResponse> exportRegistry(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<ServiceResponse> exportInventory(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
@@ -238,7 +238,7 @@ public class ConfigurationController {
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
                 return invalidRequestResponse;
             }
-            XmlConfig config = configurationManager.exportRegistry(request);
+            XmlConfig config = configurationManager.exportInventory(request);
             String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());

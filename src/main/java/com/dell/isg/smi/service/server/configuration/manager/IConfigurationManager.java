@@ -25,7 +25,7 @@ public interface IConfigurationManager {
 
 	public Object previewConfiguration(ServerAndNetworkShareRequest request) throws Exception;
 
-	public XmlConfig exportRegistry(ServerAndNetworkShareRequest request) throws Exception;
+	public XmlConfig exportInventory(ServerAndNetworkShareRequest request) throws Exception;
 
 	public XmlConfig factoryConfiguration(ServerAndNetworkShareRequest request) throws Exception;
 
