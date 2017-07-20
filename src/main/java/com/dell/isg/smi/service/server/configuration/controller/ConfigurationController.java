@@ -114,7 +114,7 @@ public class ConfigurationController {
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
         } catch (Exception e) {
-            logger.error("Exception occured in exportConfiguration : ", e);
+            logger.error("Exception occured in cloneConfiguration : ", e);
             String error = e.getMessage();
             String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
@@ -145,7 +145,7 @@ public class ConfigurationController {
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
         } catch (Exception e) {
-            logger.error("Exception occured in exportConfiguration : ", e);
+            logger.error("Exception occured in replaceConfiguration : ", e);
             String error = e.getMessage();
             String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
@@ -175,7 +175,37 @@ public class ConfigurationController {
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, result);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
         } catch (Exception e) {
-            logger.error("Exception occured in importConfiguration : ", e);
+            logger.error("Exception occured in previewConfiguration : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    @RequestMapping(value = "/exportRegistry", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Export Attribute Configuration", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
+    // @ApiImplicitParams({
+    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
+    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
+    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
+    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
+
+    public ResponseEntity<ServiceResponse> exportRegistry(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.exportRegistry(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in exportRegistry : ", e);
             String error = e.getMessage();
             String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
