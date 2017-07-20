@@ -158,6 +158,39 @@ public class ConfigurationController {
     }
     
     /**
+     * Endpoint to export the factory setting system configuration from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/factory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Factory Configuration", nickname = "replace", notes = "This operation allow user to export the factory setting system configuration from the server to a file on a remote share", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> factoryConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.factoryConfiguration(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in factoryConfiguration : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    
+    
+    /**
      * Endpoint to preview the result of import system configuration from a file located on remote share to server.
      * @param request - Export configuration request.
      * @param bindingResult - Export configuration response binder.

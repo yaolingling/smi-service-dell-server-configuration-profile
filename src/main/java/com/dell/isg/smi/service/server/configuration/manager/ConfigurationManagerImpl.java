@@ -116,6 +116,23 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	}
 	
 	@Override
+	public XmlConfig factoryConfiguration(ServerAndNetworkShareRequest request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
+				request.getServerPassword());
+
+		NetworkShare networkShare = new NetworkShare();
+		networkShare.setShareType(SHARE_TYPES.valueOf(String.valueOf(request.getShareType())));
+		networkShare.setShareName(request.getShareName());
+		networkShare.setShareAddress(request.getShareAddress());
+		networkShare.setFileName(request.getFileName());
+		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setSharePassword(request.getSharePassword());
+		
+		XmlConfig config = serverAdapterImpl.exportFactorySetting(wsmanCredentials, networkShare);
+		return config;
+	}
+	
+	@Override
 	public XmlConfig exportRegistry(ServerAndNetworkShareRequest request) throws Exception {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
