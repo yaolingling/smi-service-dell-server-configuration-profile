@@ -61,14 +61,15 @@ public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class.getName());
 
 
+    /**
+     * Endpoint to export the system configuration in normal mode from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/export", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Export Configuration", nickname = "export", notes = "This operation allow user to export the system configuration in normal mode from the server to a file on a remote share", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
     public ResponseEntity<ServiceResponse> exportConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -92,14 +93,15 @@ public class ConfigurationController {
 
     }
     
+    /**
+     * Endpoint to export the system configuration in clone mode from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/clone", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Clone Configuration", nickname = "clone", notes = "This operation allow user to export the system configuration in clone mode from the server to a file on a remote share", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
     public ResponseEntity<ServiceResponse> cloneConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -123,14 +125,15 @@ public class ConfigurationController {
 
     }
 
+    /**
+     * Endpoint to export the system configuration in replace mode from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/replace", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Replace Configuration", nickname = "replace", notes = "This operation allow user to export the system configuration in replace mode from the server to a file on a remote share", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
     public ResponseEntity<ServiceResponse> replaceConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -154,14 +157,15 @@ public class ConfigurationController {
 
     }
     
+    /**
+     * Endpoint to preview the result of import system configuration from a file located on remote share to server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/preview", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Preview Import Configuration", nickname = "import", notes = "This operation allow user to get the preview of the import system configuration from a file located on remote share to server", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
+    @ApiOperation(value = "Preview Import Configuration", nickname = "import", notes = "This operation allow user to preview the result of import system configuration from a file located on remote share to server", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> previewConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -184,14 +188,15 @@ public class ConfigurationController {
 
     }
     
+    /**
+     * Endpoint to export the attribute registry from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/exportRegistry", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Export Attribute Configuration", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
     public ResponseEntity<ServiceResponse> exportRegistry(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -214,14 +219,15 @@ public class ConfigurationController {
 
     }
 
+    /**
+     * Endpoint to import the system configuration  from the remote share file on a server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/import", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Import Configuration", nickname = "import", notes = "This operation allow user to import the system configuration from a file located on remote share to server", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
     public ResponseEntity<ServiceResponse> importConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -245,12 +251,18 @@ public class ConfigurationController {
     }
 
 
+    /**
+     * Endpoint to get the system configuration for the specified components from server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/getComponents", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Get Components", nickname = "getComponents", notes = "This operation gives the server system configuration.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> getComponents(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         List<ServerComponent> serverComponents = null;
         try {
-            // System.out.println(ReflectionToStringBuilder.toString(request, new CustomRecursiveToStringStyle(99)));
             new ServerAndNetworShareValidator().validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
@@ -284,12 +296,18 @@ public class ConfigurationController {
     }
 
 
+    /**
+     * Endpoint to update the system configuration for the specified server components.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/updateComponents", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Update Components", nickname = "updateComponents", notes = "This operation updates the server system configuration", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> updateComponents(@RequestBody @Valid ComponentList request, BindingResult bindingResult) throws Exception {
         List<ServerComponent> updatedComponents = null;
         try {
-            // System.out.println(ReflectionToStringBuilder.toString(request, new CustomRecursiveToStringStyle(99)));
 
             new ComponentListValidator().validate(request, bindingResult);
 
