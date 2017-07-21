@@ -12,18 +12,21 @@ import com.dell.isg.smi.wsman.model.XmlConfig;
 
 public interface IConfigurationManager {
 
-    public XmlConfig importConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest) throws Exception;
+	public XmlConfig importConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest) throws Exception;
 
+	public XmlConfig exportConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest, String exportMode)
+			throws Exception;
 
-    public XmlConfig exportConfiguration(ServerAndNetworkShareRequest serverAndNetworkShareRequest) throws Exception;
+	public List<ServerComponent> getComponents(ServerAndNetworkShareRequest request) throws Exception;
 
+	public List<ServerComponent> updateComponents(ComponentList request) throws Exception;
 
-    public List<ServerComponent> getComponents(ServerAndNetworkShareRequest request) throws Exception;
+	public Boolean initializeSCPService(ServerAndNetworkShareRequest request) throws Exception;
 
+	public Object previewConfiguration(ServerAndNetworkShareRequest request) throws Exception;
 
-    public List<ServerComponent> updateComponents(ComponentList request) throws Exception;
+	public XmlConfig exportInventory(ServerAndNetworkShareRequest request) throws Exception;
 
-
-    public Boolean initializeSCPService(ServerAndNetworkShareRequest request) throws Exception;
+	public XmlConfig factoryConfiguration(ServerAndNetworkShareRequest request) throws Exception;
 
 }

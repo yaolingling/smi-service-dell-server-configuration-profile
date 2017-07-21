@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
 import com.dell.isg.smi.service.server.configuration.manager.IConfigurationManager;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
@@ -60,14 +61,15 @@ public class ConfigurationController {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class.getName());
 
 
+    /**
+     * Endpoint to export the system configuration in normal mode from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/export", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Export Configuration", nickname = "export", notes = "This operation allow user to export the system configuration from the server to a file on a remote share", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
+    @ApiOperation(value = "Export Configuration", nickname = "export", notes = "This operation allow user to export the system configuration in normal mode from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> exportConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -76,7 +78,8 @@ public class ConfigurationController {
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
                 return invalidRequestResponse;
             }
-            XmlConfig config = configurationManager.exportConfiguration(request);
+    		String mode = EXPORT_MODE.NORMAL.getValue();
+            XmlConfig config = configurationManager.exportConfiguration(request, mode);
             String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
@@ -89,16 +92,175 @@ public class ConfigurationController {
         }
 
     }
+    
+    /**
+     * Endpoint to export the system configuration in clone mode from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/clone", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Clone Configuration", nickname = "clone", notes = "This operation allow user to export the system configuration in clone mode from the server to a file on a remote share", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> cloneConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            String mode = EXPORT_MODE.CLONE.getValue();
+            XmlConfig config = configurationManager.exportConfiguration(request, mode);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in cloneConfiguration : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
 
+    }
 
+    /**
+     * Endpoint to export the system configuration in replace mode from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/replace", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Replace Configuration", nickname = "replace", notes = "This operation allow user to export the system configuration in replace mode from the server to a file on a remote share", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> replaceConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            String mode = EXPORT_MODE.REPLACE.getValue();
+            XmlConfig config = configurationManager.exportConfiguration(request, mode);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in replaceConfiguration : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    /**
+     * Endpoint to export the factory setting system configuration from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/factory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Factory Configuration", nickname = "replace", notes = "This operation allow user to export the factory setting system configuration from the server to a file on a remote share", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> factoryConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.factoryConfiguration(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in factoryConfiguration : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    
+    
+    /**
+     * Endpoint to preview the result of import system configuration from a file located on remote share to server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/preview", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Preview Import Configuration", nickname = "import", notes = "This operation allow user to preview the result of import system configuration from a file located on remote share to server", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> previewConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            Object result = configurationManager.previewConfiguration(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, result);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in previewConfiguration : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    /**
+     * Endpoint to export the attribute registry from the server to a file on a remote share.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/exportInventory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Export Attribute Configuration", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> exportInventory(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.exportInventory(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in exportRegistry : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+
+    /**
+     * Endpoint to import the system configuration  from the remote share file on a server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/import", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Import Configuration", nickname = "import", notes = "This operation allow user to import the system configuration from a file located on remote share to server", response = ServiceResponse.class)
-    // @ApiImplicitParams({
-    // @ApiImplicitParam(name = "serverAndNetworkShareRequest", value = "ServerAndNetworkShareRequest", required = true, dataType =
-    // "com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest", paramType = "Body") })
-    // @ApiResponses(value = { @ApiResponse(code = 200, message = "Success", response = ResponseEntity.class),
-    // @ApiResponse(code = 400, message = "Bad Request"), @ApiResponse(code = 500, message = "Failure") })
-
     public ResponseEntity<ServiceResponse> importConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -122,12 +284,18 @@ public class ConfigurationController {
     }
 
 
+    /**
+     * Endpoint to get the system configuration for the specified components from server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/getComponents", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Get Components", nickname = "getComponents", notes = "This operation gives the server system configuration.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> getComponents(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         List<ServerComponent> serverComponents = null;
         try {
-            // System.out.println(ReflectionToStringBuilder.toString(request, new CustomRecursiveToStringStyle(99)));
             new ServerAndNetworShareValidator().validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
@@ -161,12 +329,18 @@ public class ConfigurationController {
     }
 
 
+    /**
+     * Endpoint to update the system configuration for the specified server components.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
     @RequestMapping(value = "/updateComponents", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Update Components", nickname = "updateComponents", notes = "This operation updates the server system configuration", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> updateComponents(@RequestBody @Valid ComponentList request, BindingResult bindingResult) throws Exception {
         List<ServerComponent> updatedComponents = null;
         try {
-            // System.out.println(ReflectionToStringBuilder.toString(request, new CustomRecursiveToStringStyle(99)));
 
             new ComponentListValidator().validate(request, bindingResult);
 
