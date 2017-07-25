@@ -11,7 +11,7 @@ http://en.community.dell.com/techcenter/extras/m/white_papers/20439335
 
 ### How to use
 
-Under Construction. Docker container not yet published on DockerHub..... 
+A docker container for this service is avalable at:  https://hub.docker.com/r/rackhd/dell-server-configuration-profile/
 
 #### Startup
 ~~~
@@ -103,6 +103,15 @@ http://<<service ip>>:46018/api/1.0/server/configuration/updatecomponents
   "shareType": 0
 }
 ~~~
+
+### Licensing
+This docker microservice is available under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.txt). 
+
+Source code for this microservice is available in repositories at https://github.com/RackHD.  
+
+The microservice makes use of dependent Jar libraries that may be covered by other licenses. In order to comply with the requirements of applicable licenses, the source for dependent libraries used by this microservice is available for download at:  https://bintray.com/rackhd/binary/download_file?file_path=smi-service-dell-server-configuration-profile-dependency-sources-devel.zip    
+
+Additionally the binary and source jars for all dependent libraries are available for download on Maven Central.
 
 ---
 ### Support
