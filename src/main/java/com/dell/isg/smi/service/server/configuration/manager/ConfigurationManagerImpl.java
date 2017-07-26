@@ -27,9 +27,9 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import com.dell.isg.smi.adapter.server.IServerAdapter;
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.SHARE_TYPES;
+import com.dell.isg.smi.adapter.server.config.IConfigAdapter;
 import com.dell.isg.smi.adapter.server.model.NetworkShare;
 import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
@@ -53,7 +53,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	NfsYAMLConfiguration yamlConfig;
 
 	@Autowired
-	IServerAdapter serverAdapterImpl;
+	IConfigAdapter configAdapter;
 
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurationManagerImpl.class.getName());
 
@@ -74,7 +74,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setSharePassword(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
-		return serverAdapterImpl.applyServerConfig(wsmanCredentials, networkShare, request.getShutdownType());
+		return configAdapter.applyServerConfig(wsmanCredentials, networkShare, request.getShutdownType());
 	}
 	
 	@Override
@@ -90,8 +90,8 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setSharePassword(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 		
-		XmlConfig config = serverAdapterImpl.previewImportServerConfig(wsmanCredentials, networkShare);
-		Object result = serverAdapterImpl.previewConfigResults(wsmanCredentials, config.getJobID());
+		XmlConfig config = configAdapter.previewImportServerConfig(wsmanCredentials, networkShare);
+		Object result = configAdapter.previewConfigResults(wsmanCredentials, config.getJobID());
 		
 		return result;
 	}
@@ -112,7 +112,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 
 		String components = StringUtils.join(request.getComponentNames(), ",");
 
-		return serverAdapterImpl.exportServerConfig(wsmanCredentials, networkShare, components, exportMode);
+		return configAdapter.exportServerConfig(wsmanCredentials, networkShare, components, exportMode);
 	}
 	
 	@Override
@@ -128,7 +128,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setSharePassword(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 		
-		XmlConfig config = serverAdapterImpl.exportFactorySetting(wsmanCredentials, networkShare);
+		XmlConfig config = configAdapter.exportFactorySetting(wsmanCredentials, networkShare);
 		return config;
 	}
 	
@@ -145,7 +145,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setSharePassword(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 		
-		XmlConfig config = serverAdapterImpl.exportHardwareInventory(wsmanCredentials, networkShare);
+		XmlConfig config = configAdapter.exportHardwareInventory(wsmanCredentials, networkShare);
 		return config;
 	}
 
