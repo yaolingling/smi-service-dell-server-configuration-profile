@@ -26,16 +26,22 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
+import com.dell.isg.smi.commons.model.common.Credential;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
 import com.dell.isg.smi.service.server.configuration.manager.IConfigurationManager;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
 import com.dell.isg.smi.service.server.configuration.model.MessageKey;
+import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
 import com.dell.isg.smi.service.server.configuration.model.ServiceResponse;
+import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
 import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
 import com.dell.isg.smi.service.server.configuration.validators.ComponentListValidator;
+import com.dell.isg.smi.service.server.configuration.validators.CredentialValidator;
+import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareImageRequestValidator;
 import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareValidator;
+import com.dell.isg.smi.service.server.configuration.validators.SystemEarseValidator;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
 import io.swagger.annotations.ApiOperation;
@@ -229,7 +235,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/exportInventory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Export Attribute Configuration", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
+    @ApiOperation(value = "Export Hardware Inventory", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> exportInventory(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
             new ServerAndNetworShareValidator().validate(request, bindingResult);
@@ -284,6 +290,162 @@ public class ConfigurationController {
     }
 
 
+    /**
+     * Endpoint to take backup of configuration and firmware as Image from Server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/image/backup", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Image Backup", nickname = "import", notes = "This operation allow user to take backup of configuration and firmware as Image from Server.", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> backupImage(@RequestBody @Valid ServerAndNetworkShareImageRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareImageRequestValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.backupServerImage(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in backupImage : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+
+    /**
+     * Endpoint to restore the backed up server image of configuration and firmware..
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/image/restore", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Image Restore", nickname = "import", notes = "This operation allow user to restore the backed up image of configuration and firmware.", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> restoreImage(@RequestBody @Valid ServerAndNetworkShareImageRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareImageRequestValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.restoreServerImage(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in restoreImage : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+
+    /**
+     * Endpoint to test the access of share from a server.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/testShare", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Test Share", nickname = "import", notes = "This operation allow user to test the export /import share.", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> testShare(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
+        try {
+            new ServerAndNetworShareValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            String result = configurationManager.testShareAccessablity(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, result);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in Test Share : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+ 
+    /**
+     * Endpoint to delete all configurations from the Lifecycle controller before the system 644 is retired.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/lcwipe", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Life Controller Wipe", nickname = "import", notes = "This operation allow user to to delete all configurations from the Lifecycle controller before the system 644 is retired..", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> lcwipe(@RequestBody @Valid Credential request, BindingResult bindingResult) throws Exception {
+        try {
+            new CredentialValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.wipeLifeController(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in LC Wipe : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    /**
+     * Endpoint to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature.
+     * @param request - Export configuration request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/systemEarse", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "System Earse", nickname = "import", notes = "This operation allow user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> systemEarse(@RequestBody @Valid SystemEarseRequest request, BindingResult bindingResult) throws Exception {
+        try {
+        	 new SystemEarseValidator().validate(request, bindingResult);
+            if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+            XmlConfig config = configurationManager.systemEarseServer(request);
+            String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        } catch (Exception e) {
+            logger.error("Exception occured in System Earse : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+        }
+
+    }
+    
+    
     /**
      * Endpoint to get the system configuration for the specified components from server.
      * @param request - Export configuration request.
