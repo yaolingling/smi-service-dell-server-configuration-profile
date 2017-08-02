@@ -32,12 +32,15 @@ import com.dell.isg.smi.adapter.server.config.ConfigEnum.SHARE_TYPES;
 import com.dell.isg.smi.adapter.server.config.IConfigAdapter;
 import com.dell.isg.smi.adapter.server.model.NetworkShare;
 import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
+import com.dell.isg.smi.commons.model.common.Credential;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
 import com.dell.isg.smi.service.server.configuration.model.ComponentPredicate;
+import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
 import com.dell.isg.smi.service.server.configuration.model.SystemConfiguration;
+import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
 import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
@@ -154,8 +157,79 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		List<ServerComponent> components = extractComponents(request);
 		return components;
 	}
-	
-	private SHARE_TYPES getShareTypeEnum(int type){
+
+	@Override
+	public XmlConfig wipeLifeController(Credential request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getAddress(), request.getUserName(),
+				request.getPassword());
+		XmlConfig config = configAdapter.wipeLifeController(wsmanCredentials);
+		return config;
+	}
+
+	@Override
+	public XmlConfig systemEraseServer(SystemEarseRequest request) throws Exception {
+		Credential credential = request.getCredential();
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(credential.getAddress(), credential.getUserName(),
+				credential.getPassword());
+		XmlConfig config = configAdapter.performSystemErase(wsmanCredentials, request.getComponentNames());
+		return config;
+	}
+
+	@Override
+	public String testShareAccessablity(ServerAndNetworkShareRequest request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
+				request.getServerPassword());
+
+		NetworkShare networkShare = new NetworkShare();
+		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
+		networkShare.setShareName(request.getShareName());
+		networkShare.setShareAddress(request.getShareAddress());
+		networkShare.setFileName(request.getFileName());
+		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setSharePassword(request.getSharePassword());
+
+		String result = configAdapter.verifyServerNetworkShareConnectivity(wsmanCredentials, networkShare);
+		return result;
+	}
+
+	@Override
+	public XmlConfig backupServerImage(ServerAndNetworkShareImageRequest request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
+				request.getServerPassword());
+
+		NetworkShare networkShare = new NetworkShare();
+		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
+		networkShare.setShareName(request.getShareName());
+		networkShare.setShareAddress(request.getShareAddress());
+		networkShare.setFileName(request.getFileName());
+		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setSharePassword(request.getSharePassword());
+
+		XmlConfig config = configAdapter.backupServerImage(wsmanCredentials, networkShare, request.getPassPhrase(),
+				request.getImageName(), request.getWorkgroup(), request.getScheduleStartTime(), request.getUntilTime());
+
+		return config;
+	}
+
+	@Override
+	public XmlConfig restoreServerImage(ServerAndNetworkShareImageRequest request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
+				request.getServerPassword());
+
+		NetworkShare networkShare = new NetworkShare();
+		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
+		networkShare.setShareName(request.getShareName());
+		networkShare.setShareAddress(request.getShareAddress());
+		networkShare.setFileName(request.getFileName());
+		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setSharePassword(request.getSharePassword());
+
+		XmlConfig config = configAdapter.restoreServerImage(wsmanCredentials, networkShare, request.getPassPhrase(),
+				request.getImageName(), request.getWorkgroup(), request.getScheduleStartTime(), request.getUntilTime(), request.getPreserveVDConfig());
+		return config;
+	}
+
+	private SHARE_TYPES getShareTypeEnum(int type) {
 		switch (type) {
 		case 0:
 			return SHARE_TYPES.NFS;
@@ -376,5 +450,4 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 			throw e;
 		}
 	}
-
 }

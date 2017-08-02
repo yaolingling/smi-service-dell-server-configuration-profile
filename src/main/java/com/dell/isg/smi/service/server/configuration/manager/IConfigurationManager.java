@@ -5,9 +5,13 @@ package com.dell.isg.smi.service.server.configuration.manager;
 
 import java.util.List;
 
+import com.dell.isg.smi.commons.model.common.Credential;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
+import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
+import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
+import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareImageRequestValidator;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
 public interface IConfigurationManager {
@@ -28,5 +32,15 @@ public interface IConfigurationManager {
 	public XmlConfig exportInventory(ServerAndNetworkShareRequest request) throws Exception;
 
 	public XmlConfig factoryConfiguration(ServerAndNetworkShareRequest request) throws Exception;
+
+	public XmlConfig backupServerImage(ServerAndNetworkShareImageRequest request) throws Exception;
+
+	public XmlConfig restoreServerImage(ServerAndNetworkShareImageRequest request) throws Exception;
+
+	public String testShareAccessablity(ServerAndNetworkShareRequest request) throws Exception;
+
+	public XmlConfig wipeLifeController(Credential request) throws Exception;
+
+	public XmlConfig systemEraseServer(SystemEarseRequest request) throws Exception;
 
 }
