@@ -18,9 +18,9 @@ import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
  *
  */
 @Component
-public class SystemEarseValidator implements Validator {
+public class SystemEraseValidator implements Validator {
 
-	private static final Logger logger = LoggerFactory.getLogger(SystemEarseValidator.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(SystemEraseValidator.class.getName());
 
 	private CredentialValidator credentialValidator;
 

@@ -41,7 +41,7 @@ import com.dell.isg.smi.service.server.configuration.validators.ComponentListVal
 import com.dell.isg.smi.service.server.configuration.validators.CredentialValidator;
 import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareImageRequestValidator;
 import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareValidator;
-import com.dell.isg.smi.service.server.configuration.validators.SystemEarseValidator;
+import com.dell.isg.smi.service.server.configuration.validators.SystemEraseValidator;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
 import io.swagger.annotations.ApiOperation;
@@ -421,22 +421,22 @@ public class ConfigurationController {
      * @return
      * @throws Exception - On failure 
      */
-    @RequestMapping(value = "/systemEarse", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "System Earse", nickname = "import", notes = "This operation allow user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
+    @RequestMapping(value = "/systemErase", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "System Erase", nickname = "import", notes = "This operation allow user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> systemEarse(@RequestBody @Valid SystemEarseRequest request, BindingResult bindingResult) throws Exception {
         try {
-        	 new SystemEarseValidator().validate(request, bindingResult);
+        	 new SystemEraseValidator().validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
                 return invalidRequestResponse;
             }
-            XmlConfig config = configurationManager.systemEarseServer(request);
+            XmlConfig config = configurationManager.systemEraseServer(request);
             String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg, config);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
         } catch (Exception e) {
-            logger.error("Exception occured in System Earse : ", e);
+            logger.error("Exception occured in System Erase : ", e);
             String error = e.getMessage();
             String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);

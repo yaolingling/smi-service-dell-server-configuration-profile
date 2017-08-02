@@ -167,11 +167,11 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	}
 
 	@Override
-	public XmlConfig systemEarseServer(SystemEarseRequest request) throws Exception {
+	public XmlConfig systemEraseServer(SystemEarseRequest request) throws Exception {
 		Credential credential = request.getCredential();
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(credential.getAddress(), credential.getUserName(),
 				credential.getPassword());
-		XmlConfig config = configAdapter.performSystemEarse(wsmanCredentials, request.getComponentNames());
+		XmlConfig config = configAdapter.performSystemErase(wsmanCredentials, request.getComponentNames());
 		return config;
 	}
 

@@ -41,6 +41,6 @@ public interface IConfigurationManager {
 
 	public XmlConfig wipeLifeController(Credential request) throws Exception;
 
-	public XmlConfig systemEarseServer(SystemEarseRequest request) throws Exception;
+	public XmlConfig systemEraseServer(SystemEarseRequest request) throws Exception;
 
 }
