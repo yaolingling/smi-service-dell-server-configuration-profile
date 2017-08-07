@@ -92,13 +92,13 @@ dependencies {
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile 'org.springframework.cloud:spring-cloud-starter-consul-all'
 	compile "org.springframework:spring-web"
-	runtime group: 'wiseman', name: 'wiseman', version: '+'
-	compile group: 'org.apache.commons', name: 'commons-collections4', version: '+'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '+'
-	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '+'
-	compile group: "io.springfox", name: "springfox-swagger2", version: "+"
-	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '+'
-	compile group: 'org.eclipse.persistence', name: 'org.eclipse.persistence.moxy', version: '+'
+	runtime group: 'com.dell.isg.smi', name: 'wiseman', version: '1.0.5'
+	compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
+	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+	compile group: "io.springfox", name: "springfox-swagger2", version: "2.7.0"
+	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
+	compile group: 'org.eclipse.persistence', name: 'org.eclipse.persistence.moxy', version: '2.7.0-RC1'
 }
 
 test {
