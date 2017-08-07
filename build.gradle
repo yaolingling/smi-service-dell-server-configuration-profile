@@ -30,6 +30,7 @@ buildscript {
 	}
    repositories {
     mavenLocal()
+    mavenCentral()
 	maven {
 		url "${artifactory_contextUrl}/libs-release"
 		url "https://plugins.gradle.org/m2/"
@@ -76,31 +77,30 @@ springBoot {
 
 repositories {
 	mavenLocal()
+	mavenCentral()
 	maven { url "${artifactory_contextUrl}/libs-snapshot" }
 	maven { url "${artifactory_contextUrl}/libs-release" }
 }
 
 dependencies {
-	compile "com.dell.isg.smi:wsmanlib:1.0-SNAPSHOT"
-	//compile files('src/libs/wsmanlib-1.0-SNAPSHOT.jar')
-	compile "com.dell.isg.smi:wsmanclient:1.0-SNAPSHOT"
-    compile 'com.dell.isg.smi:commons-elm:1.0-SNAPSHOT'
-    compile 'com.dell.isg.smi:commons-utilities:1.0-SNAPSHOT'
-    compile 'com.dell.isg.smi:commons-model:1.0-SNAPSHOT'
-    compile "com.dell.isg.smi:adapter-server:1.0-SNAPSHOT"
-    //compile files('src/libs/adapter-server:1.0-SNAPSHOT.jar')
+	compile "com.dell.isg.smi:wsmanlib:1.0.55"
+	compile "com.dell.isg.smi:wsmanclient:1.0.37"
+    compile 'com.dell.isg.smi:commons-elm:1.0.76'
+    compile 'com.dell.isg.smi:commons-utilities:1.0.32'
+    compile 'com.dell.isg.smi:commons-model:1.0.89'
+    compile 'com.dell.isg.smi:adapter-server:1.0.64'
 	compile "org.springframework.boot:spring-boot-starter-web"
 	compile "org.springframework.boot:spring-boot-starter-tomcat"
     compile "org.springframework.boot:spring-boot-starter-actuator"
     compile 'org.springframework.cloud:spring-cloud-starter-consul-all'
 	compile "org.springframework:spring-web"
-	runtime group: 'wiseman', name: 'wiseman', version: '+'
-	compile group: 'org.apache.commons', name: 'commons-collections4', version: '+'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '+'
-	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '+'
-	compile group: "io.springfox", name: "springfox-swagger2", version: "+"
-	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '+'
-	compile group: 'org.eclipse.persistence', name: 'org.eclipse.persistence.moxy', version: '+'
+	runtime group: 'com.dell.isg.smi', name: 'wiseman', version: '1.0.5'
+	compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.1'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
+	compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.3'
+	compile group: "io.springfox", name: "springfox-swagger2", version: "2.7.0"
+	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.7.0'
+	compile group: 'org.eclipse.persistence', name: 'org.eclipse.persistence.moxy', version: '2.7.0-RC1'
 }
 
 test {
