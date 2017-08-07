@@ -74,7 +74,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		return configAdapter.applyServerConfig(wsmanCredentials, networkShare, request.getShutdownType());
@@ -90,7 +90,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		XmlConfig config = configAdapter.previewImportServerConfig(wsmanCredentials, networkShare);
@@ -110,7 +110,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		String components = StringUtils.join(request.getComponentNames(), ",");
@@ -128,7 +128,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		XmlConfig config = configAdapter.exportFactorySetting(wsmanCredentials, networkShare);
@@ -145,7 +145,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		XmlConfig config = configAdapter.exportHardwareInventory(wsmanCredentials, networkShare);
@@ -185,7 +185,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		String result = configAdapter.verifyServerNetworkShareConnectivity(wsmanCredentials, networkShare);
@@ -202,7 +202,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		XmlConfig config = configAdapter.backupServerImage(wsmanCredentials, networkShare, request.getPassPhrase(),
@@ -221,7 +221,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareName(request.getShareName());
 		networkShare.setShareAddress(request.getShareAddress());
 		networkShare.setFileName(request.getFileName());
-		networkShare.setSharePassword(request.getShareUsername());
+		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 
 		XmlConfig config = configAdapter.restoreServerImage(wsmanCredentials, networkShare, request.getPassPhrase(),
@@ -410,7 +410,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		Boolean mounted = ConfigurationUtils.mount(request, yamlConfig);
 		if (mounted && !ConfigurationUtils.fileExist(request.getFilePathName())) {
 			logger.info("initializeSCPService: File doesn't exist. Exporting the config file from ther server");
-			String mode = EXPORT_MODE.NORMAL.getValue();
+			String mode = EXPORT_MODE.CLONE.getValue();
 			exportConfiguration(request, mode);
 		} else {
 			logger.info("initializeSCPService: File already exist. Skipping export of file to "
