@@ -33,18 +33,18 @@ public class ComponentPredicate {
                 if (null == requestServerComponent || null == serverComponents) {
                     return false;
                 }
+                
                 List<SubComponent> requestSubComponents = requestServerComponent.getSubComponents();
                 for (ServerComponent serverComponent : serverComponents) {
-                    String serverFQDD = serverComponent.getFQDD();
+                    String serverFQDD = serverComponent.getFQDD();                    
                     String requestFQDD = requestServerComponent.getFQDD();
-
                     List<SubComponent> serverSubComponents = serverComponent.getSubComponents();
 
                     if (StringUtils.equals(serverFQDD, requestFQDD)) {
                         CollectionUtils.filter(requestServerComponent.getAttributes(), updateAttributes(serverComponent.getAttributes()));
+                        CollectionUtils.filter(requestSubComponents, updateSubComponents(serverSubComponents));
                     }
-                    CollectionUtils.filter(requestSubComponents, updateSubComponents(serverSubComponents));
-                }
+                }                
                 if (CollectionUtils.isNotEmpty(requestSubComponents) || CollectionUtils.isNotEmpty(requestServerComponent.getAttributes())) {
                     return true;
                 } else {
@@ -163,5 +163,31 @@ public class ComponentPredicate {
 
         };
     }
+
+    /**
+     * filter the request server components.
+     *
+     * @param serverComponents the server components
+     * @return the Predicate
+     */
+	public Predicate<ServerComponent> filterRequestServerComponents(List<ServerComponent> serverComponents) {		
+		return new Predicate<ServerComponent>() {
+
+			@Override
+			public boolean evaluate(ServerComponent requestServerComponent) {
+				if (null == requestServerComponent || null == serverComponents) {
+					return false;
+				}
+				for (ServerComponent sc: serverComponents) {
+					String requestFQDD = requestServerComponent.getFQDD();
+					String serverFQDD = sc.getFQDD();
+					if (StringUtils.equals(requestFQDD, serverFQDD)) {
+						return true;
+					}
+				}				
+				return false;
+			}			
+		};
+	}
 
 }

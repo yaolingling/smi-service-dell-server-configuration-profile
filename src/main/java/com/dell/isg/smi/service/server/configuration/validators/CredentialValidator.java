@@ -34,14 +34,14 @@ public class CredentialValidator implements Validator {
         logger.info("Validating Credential request");
         Credential obj = (Credential) target;
 
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "address", "NotEmpty.address");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userName", "NotEmpty.userName");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "NotEmpty.password");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "address", "NotEmpty.serverIP");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "userName", "NotEmpty.serverUsername");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "password", "NotEmpty.serverPassword");
 
         String address = obj.getAddress();
 
         if (!ConfigurationUtils.validateIPAddress(address)) {
-            errors.rejectValue("address", "NotReachable.address");
+            errors.rejectValue("address", "NotReachable.serverIP");
         }
     }
 
