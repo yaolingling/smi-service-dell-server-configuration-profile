@@ -55,11 +55,11 @@ public class ServerAndNetworShareValidator implements Validator {
         String shareAddress = obj.getShareAddress();
 
         if (!ConfigurationUtils.validateIPAddress(serverIPAddress)) {
-            errors.rejectValue("serverIP", "NotReachable.ipAddress");
+            errors.rejectValue("serverIP", "NotReachable.serverIP");
         }
 
         if (!ConfigurationUtils.validateIPAddress(shareAddress)) {
-            errors.rejectValue("shareAddress", "NotReachable.ipAddress");
+            errors.rejectValue("shareAddress", "NotReachable.shareAddress");
         }
     }
 

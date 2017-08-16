@@ -40,7 +40,7 @@ import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShare
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
 import com.dell.isg.smi.service.server.configuration.model.SystemConfiguration;
-import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
+import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
 import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
@@ -68,16 +68,8 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
-
-		NetworkShare networkShare = new NetworkShare();
-		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
-		networkShare.setShareName(request.getShareName());
-		networkShare.setShareAddress(request.getShareAddress());
-		networkShare.setFileName(request.getFileName());
-		networkShare.setShareUserName(request.getShareUsername());
-		networkShare.setSharePassword(request.getSharePassword());
-
-		return configAdapter.applyServerConfig(wsmanCredentials, networkShare, request.getShutdownType());
+		
+		return configAdapter.applyServerConfig(wsmanCredentials, getNetworkShare(request), request.getShutdownType());
 	}
 
 	@Override
@@ -85,15 +77,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
 
-		NetworkShare networkShare = new NetworkShare();
-		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
-		networkShare.setShareName(request.getShareName());
-		networkShare.setShareAddress(request.getShareAddress());
-		networkShare.setFileName(request.getFileName());
-		networkShare.setShareUserName(request.getShareUsername());
-		networkShare.setSharePassword(request.getSharePassword());
-
-		XmlConfig config = configAdapter.previewImportServerConfig(wsmanCredentials, networkShare);
+		XmlConfig config = configAdapter.previewImportServerConfig(wsmanCredentials, getNetworkShare(request));
 		Object result = configAdapter.previewConfigResults(wsmanCredentials, config.getJobID());
 
 		return result;
@@ -105,17 +89,9 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
 
-		NetworkShare networkShare = new NetworkShare();
-		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
-		networkShare.setShareName(request.getShareName());
-		networkShare.setShareAddress(request.getShareAddress());
-		networkShare.setFileName(request.getFileName());
-		networkShare.setShareUserName(request.getShareUsername());
-		networkShare.setSharePassword(request.getSharePassword());
-
 		String components = StringUtils.join(request.getComponentNames(), ",");
 
-		return configAdapter.exportServerConfig(wsmanCredentials, networkShare, components, exportMode);
+		return configAdapter.exportServerConfig(wsmanCredentials, getNetworkShare(request), components, exportMode);
 	}
 
 	@Override
@@ -123,15 +99,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
 
-		NetworkShare networkShare = new NetworkShare();
-		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
-		networkShare.setShareName(request.getShareName());
-		networkShare.setShareAddress(request.getShareAddress());
-		networkShare.setFileName(request.getFileName());
-		networkShare.setShareUserName(request.getShareUsername());
-		networkShare.setSharePassword(request.getSharePassword());
-
-		XmlConfig config = configAdapter.exportFactorySetting(wsmanCredentials, networkShare);
+		XmlConfig config = configAdapter.exportFactorySetting(wsmanCredentials, getNetworkShare(request));
 		return config;
 	}
 
@@ -140,15 +108,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
 
-		NetworkShare networkShare = new NetworkShare();
-		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
-		networkShare.setShareName(request.getShareName());
-		networkShare.setShareAddress(request.getShareAddress());
-		networkShare.setFileName(request.getFileName());
-		networkShare.setShareUserName(request.getShareUsername());
-		networkShare.setSharePassword(request.getSharePassword());
-
-		XmlConfig config = configAdapter.exportHardwareInventory(wsmanCredentials, networkShare);
+		XmlConfig config = configAdapter.exportHardwareInventory(wsmanCredentials, getNetworkShare(request));
 		return config;
 	}
 
@@ -167,7 +127,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	}
 
 	@Override
-	public XmlConfig systemEraseServer(SystemEarseRequest request) throws Exception {
+	public XmlConfig systemEraseServer(SystemEraseRequest request) throws Exception {
 		Credential credential = request.getCredential();
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(credential.getAddress(), credential.getUserName(),
 				credential.getPassword());
@@ -180,15 +140,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
 				request.getServerPassword());
 
-		NetworkShare networkShare = new NetworkShare();
-		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
-		networkShare.setShareName(request.getShareName());
-		networkShare.setShareAddress(request.getShareAddress());
-		networkShare.setFileName(request.getFileName());
-		networkShare.setShareUserName(request.getShareUsername());
-		networkShare.setSharePassword(request.getSharePassword());
-
-		String result = configAdapter.verifyServerNetworkShareConnectivity(wsmanCredentials, networkShare);
+		String result = configAdapter.verifyServerNetworkShareConnectivity(wsmanCredentials, getNetworkShare(request));
 		return result;
 	}
 
@@ -389,8 +341,11 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 
 				List<ServerComponent> requestServerComponents = request.getServerComponents();
 				ComponentPredicate predicate = new ComponentPredicate();
+				
+				CollectionUtils.filter(requestServerComponents, predicate.filterRequestServerComponents(serverComponents));
 				CollectionUtils.filter(requestServerComponents, predicate.updateServerComponents(serverComponents));
-				if (null != requestServerComponents) {
+				
+				if (CollectionUtils.isNotEmpty(requestServerComponents)) {
 					updatedServerComponents.addAll(requestServerComponents);
 				}
 			}
@@ -449,5 +404,22 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+	
+	/**
+	 * Gets the network share.
+	 *
+	 * @param request the ServerAndNetworkShareRequest
+	 * @return the network share
+	 */
+	private NetworkShare getNetworkShare(ServerAndNetworkShareRequest request) {
+		NetworkShare networkShare = new NetworkShare();
+		networkShare.setShareType(getShareTypeEnum(request.getShareType()));
+		networkShare.setShareName(request.getShareName());
+		networkShare.setShareAddress(request.getShareAddress());
+		networkShare.setFileName(request.getFileName());
+		networkShare.setShareUserName(request.getShareUsername());
+		networkShare.setSharePassword(request.getSharePassword());
+		return networkShare;
 	}
 }

@@ -35,7 +35,7 @@ import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShare
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
 import com.dell.isg.smi.service.server.configuration.model.ServiceResponse;
-import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
+import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
 import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
 import com.dell.isg.smi.service.server.configuration.validators.ComponentListValidator;
 import com.dell.isg.smi.service.server.configuration.validators.CredentialValidator;
@@ -63,6 +63,17 @@ public class ConfigurationController {
     
     @Autowired
     NfsYAMLConfiguration yamlConfig;
+    
+    @Autowired
+    ComponentListValidator componentListValidator;
+    @Autowired
+    ServerAndNetworShareValidator serverAndNetworkShareValidator;
+    @Autowired
+    ServerAndNetworShareImageRequestValidator serverAndNetworkShareImageReqValidator;
+    @Autowired
+    CredentialValidator credentialValidator;
+    @Autowired
+    SystemEraseValidator systemEraseValidator;
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class.getName());
 
@@ -78,7 +89,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Export Configuration", nickname = "export", notes = "This operation allow user to export the system configuration in normal mode from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> exportConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -110,7 +121,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Clone Configuration", nickname = "clone", notes = "This operation allow user to export the system configuration in clone mode from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> cloneConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -142,7 +153,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Replace Configuration", nickname = "replace", notes = "This operation allow user to export the system configuration in replace mode from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> replaceConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -174,7 +185,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Factory Configuration", nickname = "replace", notes = "This operation allow user to export the factory setting system configuration from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> factoryConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -207,7 +218,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Preview Import Configuration", nickname = "import", notes = "This operation allow user to preview the result of import system configuration from a file located on remote share to server", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> previewConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -238,7 +249,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Export Hardware Inventory", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> exportInventory(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -269,7 +280,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Import Configuration", nickname = "import", notes = "This operation allow user to import the system configuration from a file located on remote share to server", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> importConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -301,7 +312,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Image Backup", nickname = "import", notes = "This operation allow user to take backup of configuration and firmware as Image from Server.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> backupImage(@RequestBody @Valid ServerAndNetworkShareImageRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareImageRequestValidator().validate(request, bindingResult);
+        	serverAndNetworkShareImageReqValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -332,7 +343,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Image Restore", nickname = "import", notes = "This operation allow user to restore the backed up image of configuration and firmware.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> restoreImage(@RequestBody @Valid ServerAndNetworkShareImageRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareImageRequestValidator().validate(request, bindingResult);
+        	serverAndNetworkShareImageReqValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -363,7 +374,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Test Share", nickname = "import", notes = "This operation allow user to test the export /import share.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> testShare(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -394,7 +405,7 @@ public class ConfigurationController {
     @ApiOperation(value = "Life Controller Wipe", nickname = "import", notes = "This operation allow user to to delete all configurations from the Lifecycle controller before the system 644 is retired..", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> lcwipe(@RequestBody @Valid Credential request, BindingResult bindingResult) throws Exception {
         try {
-            new CredentialValidator().validate(request, bindingResult);
+        	credentialValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -423,9 +434,9 @@ public class ConfigurationController {
      */
     @RequestMapping(value = "/systemErase", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "System Erase", nickname = "import", notes = "This operation allow user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
-    public ResponseEntity<ServiceResponse> systemEarse(@RequestBody @Valid SystemEarseRequest request, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<ServiceResponse> systemEarse(@RequestBody @Valid SystemEraseRequest request, BindingResult bindingResult) throws Exception {
         try {
-        	 new SystemEraseValidator().validate(request, bindingResult);
+        	systemEraseValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -458,7 +469,7 @@ public class ConfigurationController {
     public ResponseEntity<ServiceResponse> getComponents(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         List<ServerComponent> serverComponents = null;
         try {
-            new ServerAndNetworShareValidator().validate(request, bindingResult);
+        	serverAndNetworkShareValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
                 ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
@@ -502,9 +513,9 @@ public class ConfigurationController {
     @ApiOperation(value = "Update Components", nickname = "updateComponents", notes = "This operation updates the server system configuration", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> updateComponents(@RequestBody @Valid ComponentList request, BindingResult bindingResult) throws Exception {
         List<ServerComponent> updatedComponents = null;
+        XmlConfig xmlConfig = null;
         try {
-
-            new ComponentListValidator().validate(request, bindingResult);
+        	componentListValidator.validate(request, bindingResult);
 
             if (null == request || bindingResult.hasErrors()) {
                 logger.error("Invalid Request or validation failure");
@@ -515,13 +526,13 @@ public class ConfigurationController {
             Boolean initialized = configurationManager.initializeSCPService(serverAndNetworkShareRequest);
             if (initialized) {
                 updatedComponents = configurationManager.updateComponents(request);
-                XmlConfig xmlConfig = configurationManager.importConfiguration(serverAndNetworkShareRequest);
-                ConfigurationUtils.removeRandomFile(serverAndNetworkShareRequest, yamlConfig);
-
                 String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
                 if (CollectionUtils.isEmpty(updatedComponents)) {
-                    requestMsg = "All Components are already updated. Nothing to update.";
+                    requestMsg = messageSource.getMessage("Request.components.already.updated", null, Locale.getDefault());
+                } else {
+                	xmlConfig = configurationManager.importConfiguration(serverAndNetworkShareRequest);
                 }
+                ConfigurationUtils.removeRandomFile(serverAndNetworkShareRequest, yamlConfig);
                 ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg);
                 serviceResponse.setServerComponents(updatedComponents);
                 serviceResponse.setXmlConfig(xmlConfig);

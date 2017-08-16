@@ -10,8 +10,7 @@ import com.dell.isg.smi.service.server.configuration.model.ComponentList;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
-import com.dell.isg.smi.service.server.configuration.model.SystemEarseRequest;
-import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareImageRequestValidator;
+import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
 public interface IConfigurationManager {
@@ -41,6 +40,6 @@ public interface IConfigurationManager {
 
 	public XmlConfig wipeLifeController(Credential request) throws Exception;
 
-	public XmlConfig systemEraseServer(SystemEarseRequest request) throws Exception;
+	public XmlConfig systemEraseServer(SystemEraseRequest request) throws Exception;
 
 }

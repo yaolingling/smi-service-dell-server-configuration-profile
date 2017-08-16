@@ -3,7 +3,6 @@
  */
 package com.dell.isg.smi.service.server.configuration.model;
 
-import java.util.List;
 import com.dell.isg.smi.commons.model.common.Credential;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -12,7 +11,7 @@ import io.swagger.annotations.ApiModelProperty;
  *
  */
 
-public class SystemEarseRequest {
+public class SystemEraseRequest {
 	
 	@ApiModelProperty(value = "Credential", required = false)
 	private Credential credential;
