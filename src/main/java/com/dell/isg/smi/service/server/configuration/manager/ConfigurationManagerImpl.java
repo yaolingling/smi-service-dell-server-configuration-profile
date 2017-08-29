@@ -402,7 +402,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		Boolean mounted = ConfigurationUtils.mount(request, yamlConfig);
 		if (mounted && !ConfigurationUtils.fileExist(request.getFilePathName())) {
 			logger.info("initializeSCPService: File doesn't exist. Exporting the config file from ther server");
-			String mode = EXPORT_MODE.CLONE.getValue();
+			String mode = EXPORT_MODE.NORMAL.getValue();
 			exportConfiguration(request, mode);
 		} else {
 			logger.info("initializeSCPService: File already exist. Skipping export of file to "
