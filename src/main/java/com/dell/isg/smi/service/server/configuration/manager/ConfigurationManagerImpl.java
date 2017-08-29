@@ -4,8 +4,12 @@
 package com.dell.isg.smi.service.server.configuration.manager;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.xml.bind.Binder;
 import javax.xml.bind.JAXBContext;
@@ -23,6 +27,7 @@ import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -30,19 +35,30 @@ import org.w3c.dom.Node;
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.SHARE_TYPES;
 import com.dell.isg.smi.adapter.server.config.IConfigAdapter;
+import com.dell.isg.smi.adapter.server.inventory.IInventoryAdapter;
 import com.dell.isg.smi.adapter.server.model.NetworkShare;
 import com.dell.isg.smi.adapter.server.model.WsmanCredentials;
 import com.dell.isg.smi.commons.model.common.Credential;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
+import com.dell.isg.smi.service.server.configuration.model.Attribute;
+import com.dell.isg.smi.service.server.configuration.model.BiosSetupRequest;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
 import com.dell.isg.smi.service.server.configuration.model.ComponentPredicate;
+import com.dell.isg.smi.service.server.configuration.model.ConfigureBiosResult;
+import com.dell.isg.smi.service.server.configuration.model.DCIM_BIOSEnumeration;
+import com.dell.isg.smi.service.server.configuration.model.DCIM_BootSourceSetting;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
+import com.dell.isg.smi.service.server.configuration.model.ServerRequest;
+import com.dell.isg.smi.service.server.configuration.model.SystemBiosSettings;
 import com.dell.isg.smi.service.server.configuration.model.SystemConfiguration;
 import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
 import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
 import com.dell.isg.smi.wsman.model.XmlConfig;
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.TypeRef;
 
 /**
  * @author Muqeeth_Kowkab
@@ -52,11 +68,33 @@ import com.dell.isg.smi.wsman.model.XmlConfig;
 @Component
 public class ConfigurationManagerImpl implements IConfigurationManager {
 
+	private static final String BIOS_SETUP_1_1 = "BIOS.Setup.1-1";
+
+	private static final String COMPLETED_WITH_NO_ERROR = "Completed with no error";
+
+	private static final String THE_COMMAND_WAS_SUCCESSFUL = "The command was successful";
+
+	private static final String BOOTSOURCE_BCV = "BCV";
+
+	private static final String BOOTSOURCE_IPL = "IPL";
+
 	@Autowired
 	NfsYAMLConfiguration yamlConfig;
 
 	@Autowired
 	IConfigAdapter configAdapter;
+	
+	@Autowired
+	IInventoryAdapter inventoryAdapter;
+	
+	@Autowired
+	Configuration jsonPathConfiguration;
+	
+	@Autowired
+	ComponentPredicate componentPredicate;
+	
+	@Autowired
+    ResourceBundleMessageSource messageSource;
 
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurationManagerImpl.class.getName());
 
@@ -340,10 +378,9 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 				List<ServerComponent> serverComponents = systemConfig.getServerComponents();
 
 				List<ServerComponent> requestServerComponents = request.getServerComponents();
-				ComponentPredicate predicate = new ComponentPredicate();
 				
-				CollectionUtils.filter(requestServerComponents, predicate.filterRequestServerComponents(serverComponents));
-				CollectionUtils.filter(requestServerComponents, predicate.updateServerComponents(serverComponents));
+				CollectionUtils.filter(requestServerComponents, componentPredicate.filterRequestServerComponents(serverComponents));
+				CollectionUtils.filter(requestServerComponents, componentPredicate.updateServerComponents(serverComponents));
 				
 				if (CollectionUtils.isNotEmpty(requestServerComponents)) {
 					updatedServerComponents.addAll(requestServerComponents);
@@ -421,5 +458,264 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		networkShare.setShareUserName(request.getShareUsername());
 		networkShare.setSharePassword(request.getSharePassword());
 		return networkShare;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemBiosSettings getBiosSettings(ServerRequest request) throws Exception {
+		WsmanCredentials wsmanCredentials = new WsmanCredentials(request.getServerIP(), request.getServerUsername(),
+				request.getServerPassword());
+		Map<String, Object> result = (Map<String, Object>) inventoryAdapter.collectBios(wsmanCredentials);
+		SystemBiosSettings biosSettings = extractDCIMBIOS(result);
+		List<DCIM_BootSourceSetting> bootSourceSettings = getBootSourceSettings(wsmanCredentials);
+		biosSettings.setBootSourceSettings(bootSourceSettings);
+		
+		return biosSettings;
+	}
+
+	@SuppressWarnings("unchecked")
+	private List<DCIM_BootSourceSetting> getBootSourceSettings(WsmanCredentials wsmanCredentials) throws Exception {
+		List<DCIM_BootSourceSetting> dcimBootSourceSettings = null;
+		try {			
+			Map<String, Object> result = (Map<String, Object>) inventoryAdapter.collectBoot(wsmanCredentials);
+			
+			if (null != result) {
+				TypeRef<List<DCIM_BootSourceSetting>> typeRef = new TypeRef<List<DCIM_BootSourceSetting>>() {};
+				dcimBootSourceSettings = JsonPath.using(jsonPathConfiguration).parse(result.get("DCIM_BootSourceSetting")).read("$[*]", typeRef);
+			}	
+		} catch (Exception e) {
+			throw e;
+		}
+		return dcimBootSourceSettings;
+	}
+
+	private SystemBiosSettings extractDCIMBIOS(Map<String, Object>  result) throws Exception {
+		SystemBiosSettings systemBiosSetting = null;
+		try {
+			if (null != result) {
+				TypeRef<List<DCIM_BIOSEnumeration>> typeRef = new TypeRef<List<DCIM_BIOSEnumeration>>() {};
+				List<DCIM_BIOSEnumeration> dcimBIOSEnumerations = JsonPath.using(jsonPathConfiguration).parse(result.get("DCIM_BIOSEnumeration")).read("$[*]", typeRef);
+				
+				systemBiosSetting = getSystemBios(dcimBIOSEnumerations);
+			
+			}
+		} catch (Exception e) {
+			throw e;
+		}
+		return systemBiosSetting;
+	}
+
+	private SystemBiosSettings getSystemBios(List<DCIM_BIOSEnumeration> dcimBIOSEnumerations) throws Exception {
+		SystemBiosSettings systemBiosSetting = new SystemBiosSettings();
+		try {
+			if (CollectionUtils.isNotEmpty(dcimBIOSEnumerations)) {
+				List<Attribute> systemAttributes = new LinkedList<Attribute>();
+				Map<String, ArrayList<String>> attributePossibleValuesMap = new HashMap<String, ArrayList<String>>();
+				
+				
+				for (DCIM_BIOSEnumeration dcimBios: dcimBIOSEnumerations) {
+					String attributeName = dcimBios.getAttributeName();
+					String attributeValue = dcimBios.getCurrentValue();
+					ArrayList<String> possibleValues = dcimBios.getPossibleValues();
+					
+					Attribute attribute = new Attribute();				
+					attribute.setName(attributeName);
+					attribute.setValue(attributeValue);
+					systemAttributes.add(attribute);			
+					
+					attributePossibleValuesMap.put(attributeName, possibleValues);				
+				}
+				
+				if (CollectionUtils.isNotEmpty(systemAttributes) && null != attributePossibleValuesMap) {
+					systemBiosSetting.setAttributes(systemAttributes);
+					systemBiosSetting.setPossibleValuesForAttributes(attributePossibleValuesMap);
+				}				
+			}			
+		} catch (Exception e) {
+			throw e;
+		}
+		return systemBiosSetting;
+	}
+
+	@Override
+	public ConfigureBiosResult configureBios(BiosSetupRequest request) throws Exception {
+		ConfigureBiosResult biosResult = new ConfigureBiosResult();
+		try {
+			
+			if (null != request && null != request.getServerRequest()) {
+				ServerRequest serverRequest = request.getServerRequest();
+				WsmanCredentials wsmanCredentials = new WsmanCredentials(serverRequest.getServerIP(),
+						serverRequest.getServerUsername(), serverRequest.getServerPassword());
+							
+				SystemBiosSettings serverBiosSettings = getBiosSettings(request.getServerRequest());
+				
+				Map<String, String> filteredAttributesToUpdate = getFilteredAttributesToUpdate(request.getAttributes(), serverBiosSettings);
+				
+				String biosAtrributesUpdateResult = updateAttributes(wsmanCredentials, filteredAttributesToUpdate);
+				biosResult.setBiosUpdateAttributesResult(biosAtrributesUpdateResult);
+				biosResult.setUpdatedAttributes(filteredAttributesToUpdate);
+				
+				List<DCIM_BootSourceSetting> serverBootSourceSettings = serverBiosSettings.getBootSourceSettings();	
+				
+				List<String> filteredInstanceIdsForBootSeq = getInstanceIds(request.getBiosBootSequenceOrder(), serverBootSourceSettings);				
+				List<String> filteredInstanceIdsForHddSeq = getInstanceIds(request.getHddSequenceOrder(), serverBootSourceSettings);			
+				String changeBootOrderSeqResult = changeBootOrderSequence(wsmanCredentials, filteredInstanceIdsForBootSeq, BOOTSOURCE_IPL);
+				biosResult.setChangeBootOrderSequenceMessage(changeBootOrderSeqResult);				
+				String changeHddSeqResult = changeBootOrderSequence(wsmanCredentials, filteredInstanceIdsForHddSeq, BOOTSOURCE_BCV);
+				biosResult.setChangeHddSequenceMessage(changeHddSeqResult);
+				
+				List<String> devicesToEnable = request.getEnableBootDevices();				
+				CollectionUtils.filter(devicesToEnable, componentPredicate.filterEnableDisableDevices(serverBootSourceSettings, true));
+				List<String> filteredInstanceIdsForBootEnable = getInstanceIds(devicesToEnable, serverBootSourceSettings);
+				
+				List<String> devicesToDisable = request.getDisableBootDevices();
+				CollectionUtils.filter(devicesToDisable, componentPredicate.filterEnableDisableDevices(serverBootSourceSettings, false));
+				List<String> filteredInstanceIdsForBootDisable = getInstanceIds(devicesToDisable, serverBootSourceSettings);
+				
+				String bootSourceEnableResult = changeBootSourceState(wsmanCredentials, filteredInstanceIdsForBootEnable, true, BOOTSOURCE_IPL);
+				biosResult.setEnableBootDevicesResult(bootSourceEnableResult);
+				String bootSourceDisableResult = changeBootSourceState(wsmanCredentials, filteredInstanceIdsForBootDisable, false, BOOTSOURCE_IPL);
+				biosResult.setDisableBootDevicesResult(bootSourceDisableResult);
+			
+				
+				
+				if (StringUtils.equals(biosAtrributesUpdateResult, THE_COMMAND_WAS_SUCCESSFUL)
+						|| StringUtils.equals(changeBootOrderSeqResult, COMPLETED_WITH_NO_ERROR)
+						|| StringUtils.equals(changeHddSeqResult, COMPLETED_WITH_NO_ERROR)
+						|| StringUtils.equals(bootSourceEnableResult, COMPLETED_WITH_NO_ERROR)
+						|| StringUtils.equals(bootSourceDisableResult, COMPLETED_WITH_NO_ERROR)) {
+					String jobId = configAdapter.createTargetConfigJob(wsmanCredentials, BIOS_SETUP_1_1);
+					logger.info("configureBios: createTargetConfigJob: result: JobId: " + jobId);
+					
+					biosResult.setJobId(jobId);	
+					biosResult.setConfigBiosMessage(messageSource.getMessage("Request.ConfigureBios.Success", null, Locale.getDefault()));
+				}				
+			}		
+		} catch (Exception e) {
+			throw e;
+		}
+		return biosResult;
+		
+	}
+
+	/**
+	 * Gets the attributes to update.
+	 *
+	 * @param attributes the attributes
+	 * @param serverBiosSettings the configured ServerBiosSettings
+	 * @return the attributes to update
+	 * @throws Exception the exception
+	 */
+	private Map<String, String> getFilteredAttributesToUpdate(List<Attribute> attributes,
+			SystemBiosSettings serverBiosSettings) throws Exception {
+		Map<String, String> filteredAttributes = new HashMap<String, String>();
+		try {
+			CollectionUtils.select(attributes, componentPredicate.filterAttributes(serverBiosSettings, filteredAttributes));
+		} catch (Exception e) {
+			throw e;
+		}
+		return filteredAttributes;
+		
+	}
+
+	/**
+	 * Gets the instance ids.
+	 *
+	 * @param devices the devices
+	 * @param serverBootSourceSettings the server boot source settings
+	 * @return the instance ids
+	 * @throws Exception the exception
+	 */
+	private List<String> getInstanceIds(List<String> devices,
+			List<DCIM_BootSourceSetting> serverBootSourceSettings) throws Exception {
+		List<String> filteredInstanceIdsForDevices = new LinkedList<String>();
+		try {
+			CollectionUtils.select(devices, componentPredicate.filterInstanceIds(serverBootSourceSettings, filteredInstanceIdsForDevices));						
+		} catch (Exception e) {
+			throw e;
+		}
+		return filteredInstanceIdsForDevices;		
+	}
+	
+	/**
+	 * Update attributes.
+	 *
+	 * @param wsmanCredentials the wsman credentials
+	 * @param attributesToUpdate the attributes to update
+	 * @return the string Result
+	 * @throws Exception the exception
+	 */
+	private String updateAttributes(WsmanCredentials wsmanCredentials, Map<String, String> attributesToUpdate)
+			throws Exception {
+		String result = "No BIOS Attributes to change.";
+		try {
+			if (null != wsmanCredentials && null != attributesToUpdate && !attributesToUpdate.isEmpty()) {
+				result = configAdapter.updateBiosAttributes(wsmanCredentials, attributesToUpdate, false);
+				logger.info("UpdateAttribute Result: " + result);
+			}
+
+		} catch (Exception e) {
+			throw e;
+		}
+		return result;
+	}
+
+	/**
+	 * Change boot source state.
+	 *
+	 * @param wsmanCredentials the wsman credentials
+	 * @param instanceIdList the instance id list
+	 * @param isEnabled the is enabled
+	 * @param instanceType the instance type
+	 * @return the string Result
+	 * @throws Exception the exception
+	 */
+	private String changeBootSourceState(WsmanCredentials wsmanCredentials, List<String> instanceIdList, boolean isEnabled,
+			String instanceType) throws Exception {
+		String result = "No Devices to enable or disable.";
+		try {
+			if (null != wsmanCredentials && CollectionUtils.isNotEmpty(instanceIdList)
+					&& StringUtils.isNotBlank(instanceType)) {
+				result = configAdapter.changeBootSourceState(wsmanCredentials, instanceIdList, isEnabled, instanceType);
+				logger.info("ChangeBootSourceState Result: " + result);
+				if (StringUtils.equals(result, "0")) {
+					result = COMPLETED_WITH_NO_ERROR;
+				} else {
+					result = "Failed. Check the logs for the detailed failure.";
+				}
+			}
+		} catch (Exception e) {
+			throw e;
+		}		
+		return result;
+	}
+
+	/**
+	 * Change boot order sequence.
+	 *
+	 * @param wsmanCredentials the wsman credentials
+	 * @param instanceIdList the instance id list
+	 * @param instanceType the BootSourceType type
+	 * @return the string Result
+	 * @throws Exception the exception
+	 */
+	private String changeBootOrderSequence(WsmanCredentials wsmanCredentials, List<String> instanceIdList, String instanceType)
+			throws Exception {
+		String result = "No Devices to change in sequence.";
+		try {
+			if (null != wsmanCredentials && CollectionUtils.isNotEmpty(instanceIdList)
+					&& StringUtils.isNotBlank(instanceType)) {
+				result = configAdapter.changeBootOrder(wsmanCredentials, instanceType, instanceIdList);
+				logger.info("changeBootOrderSequence Result: " + result);
+				if (StringUtils.equals(result, "0")) {
+					result = COMPLETED_WITH_NO_ERROR;
+				} else {
+					result = "Failed. Check the logs for the detailed failure.";
+				}
+			}
+		} catch (Exception e) {
+			throw e;
+		}
+		return result;
 	}
 }

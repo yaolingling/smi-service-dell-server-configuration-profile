@@ -39,6 +39,12 @@ public class ServiceResponse {
     
     @ApiModelProperty(value = "The Result. Which has the details of preview import configuration Result returned from DELL Server", required = false)
     private Object result;
+    
+    @ApiModelProperty(value = "The System BIOS Settings of DELL Server", required = false)
+    private SystemBiosSettings systemBiosSettings;
+    
+    @ApiModelProperty(value = "The Configure BIOS Result", required = false)
+    private ConfigureBiosResult configureBiosResult;
 
 	public ServiceResponse(HttpStatus status, String message) {
         super();
@@ -169,5 +175,39 @@ public class ServiceResponse {
     public void setServerComponents(List<ServerComponent> serverComponents) {
         this.serverComponents = serverComponents;
     }
+
+
+	/**
+	 * @return the systemBiosSettings
+	 */
+	public SystemBiosSettings getSystemBiosSettings() {
+		return systemBiosSettings;
+	}
+
+
+	/**
+	 * @param systemBiosSettings the systemBiosSettings to set
+	 */
+	public void setSystemBiosSettings(SystemBiosSettings systemBiosSettings) {
+		this.systemBiosSettings = systemBiosSettings;
+	}
+
+
+	/**
+	 * @return the configureBiosResult
+	 */
+	public ConfigureBiosResult getConfigureBiosResult() {
+		return configureBiosResult;
+	}
+
+
+	/**
+	 * @param configureBiosResult the configureBiosResult to set
+	 */
+	public void setConfigureBiosResult(ConfigureBiosResult configureBiosResult) {
+		this.configureBiosResult = configureBiosResult;
+	}
+
+
 
 }

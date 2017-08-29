@@ -29,18 +29,24 @@ import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
 import com.dell.isg.smi.commons.model.common.Credential;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
 import com.dell.isg.smi.service.server.configuration.manager.IConfigurationManager;
+import com.dell.isg.smi.service.server.configuration.model.BiosSetupRequest;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
+import com.dell.isg.smi.service.server.configuration.model.ConfigureBiosResult;
 import com.dell.isg.smi.service.server.configuration.model.MessageKey;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
+import com.dell.isg.smi.service.server.configuration.model.ServerRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServiceResponse;
+import com.dell.isg.smi.service.server.configuration.model.SystemBiosSettings;
 import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
 import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
+import com.dell.isg.smi.service.server.configuration.validators.BiosSetupRequestValidator;
 import com.dell.isg.smi.service.server.configuration.validators.ComponentListValidator;
 import com.dell.isg.smi.service.server.configuration.validators.CredentialValidator;
 import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareImageRequestValidator;
 import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworShareValidator;
+import com.dell.isg.smi.service.server.configuration.validators.ServerRequestValidator;
 import com.dell.isg.smi.service.server.configuration.validators.SystemEraseValidator;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
@@ -74,6 +80,10 @@ public class ConfigurationController {
     CredentialValidator credentialValidator;
     @Autowired
     SystemEraseValidator systemEraseValidator;
+    @Autowired
+    ServerRequestValidator serverRequestValidator;
+    @Autowired
+    BiosSetupRequestValidator biosSetupRequestValidator;
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class.getName());
 
@@ -550,6 +560,63 @@ public class ConfigurationController {
             ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
             return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
         }
+    }
+    
+    /**
+     * Endpoint to get the configured BIOS configuration for the specified server.
+     * @param request - Server Request.
+     * @param bindingResult - Export configuration response binder.
+     * @return
+     * @throws Exception - On failure 
+     */
+    @RequestMapping(value = "/getBiosConfiguration", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Get BIOS Configuration", nickname = "getComponents", notes = "This operation gives the configured BIOS Configuration of server.", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> getBiosConfiguration(@RequestBody @Valid ServerRequest request, BindingResult bindingResult) throws Exception {
+    	SystemBiosSettings systemBiosSettings = null;
+		try {
+			serverRequestValidator.validate(request, bindingResult);
+			if (null == request || bindingResult.hasErrors()) {
+                logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+            }
+			systemBiosSettings = configurationManager.getBiosSettings(request);
+			String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
+			ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg);
+			serviceResponse.setSystemBiosSettings(systemBiosSettings);
+			return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+		} catch (Exception e) {
+			logger.error("Exception occured in getComponents : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+		}
+    	
+    }
+    
+    @RequestMapping(value = "/configureBios", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
+    @ApiOperation(value = "Configure BIOS Settings", nickname = "configureBios", notes = "This operation allows to configure BIOS Settings", response = ServiceResponse.class)
+    public ResponseEntity<ServiceResponse> configureBios(@RequestBody @Valid BiosSetupRequest request, BindingResult bindingResult) throws Exception {
+    	try {
+    		biosSetupRequestValidator.validate(request, bindingResult);
+    		if (null == request || bindingResult.hasErrors()) {    			
+    			logger.error("Invalid Request or validation failure");
+                ResponseEntity<ServiceResponse> invalidRequestResponse = getInvalidRequestResponse(bindingResult, MessageKey.INVALID_REQUEST);
+                return invalidRequestResponse;
+    		}
+    		ConfigureBiosResult configureBiosResult = configurationManager.configureBios(request);
+    		String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());    		
+			ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.OK, requestMsg);
+			serviceResponse.setConfigureBiosResult(configureBiosResult);
+			return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+    	} catch (Exception e) {
+    		logger.error("Exception occured in configureBios : ", e);
+            String error = e.getMessage();
+            String failureMsg = messageSource.getMessage(MessageKey.REQUEST_PROCESS_FAILED.getKey(), null, Locale.getDefault());
+            ServiceResponse serviceResponse = new ServiceResponse(HttpStatus.INTERNAL_SERVER_ERROR, failureMsg, error);
+            return new ResponseEntity<ServiceResponse>(serviceResponse, new HttpHeaders(), serviceResponse.getStatus());
+    	}
     }
 
 

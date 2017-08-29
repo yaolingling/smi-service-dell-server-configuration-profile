@@ -6,10 +6,14 @@ package com.dell.isg.smi.service.server.configuration.manager;
 import java.util.List;
 
 import com.dell.isg.smi.commons.model.common.Credential;
+import com.dell.isg.smi.service.server.configuration.model.BiosSetupRequest;
 import com.dell.isg.smi.service.server.configuration.model.ComponentList;
+import com.dell.isg.smi.service.server.configuration.model.ConfigureBiosResult;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
+import com.dell.isg.smi.service.server.configuration.model.ServerRequest;
+import com.dell.isg.smi.service.server.configuration.model.SystemBiosSettings;
 import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
 import com.dell.isg.smi.wsman.model.XmlConfig;
 
@@ -41,5 +45,9 @@ public interface IConfigurationManager {
 	public XmlConfig wipeLifeController(Credential request) throws Exception;
 
 	public XmlConfig systemEraseServer(SystemEraseRequest request) throws Exception;
+
+	public SystemBiosSettings getBiosSettings(ServerRequest request) throws Exception;
+
+	public ConfigureBiosResult configureBios(BiosSetupRequest request) throws Exception;
 
 }

@@ -1,8 +1,5 @@
 /**
- * Copyright © 2017 DELL Inc. or its subsidiaries.  All Rights Reserved.
- */
-/**
- * 
+ * Copyright Â© 2017 DELL Inc. or its subsidiaries.  All Rights Reserved.
  */
 package com.dell.isg.smi.service.server.configuration;
 
@@ -19,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 
 /**
- * @author mkowkab
+ * @author Muqeeth.Kowkab
  *
  */
 @Component
