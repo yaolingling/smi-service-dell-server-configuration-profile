@@ -21,11 +21,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
 
 /**
  * @author Muqeeth_Kowkab
@@ -66,6 +70,15 @@ public class Application extends WebMvcConfigurerAdapter {
         ms.setBasename("validation");
         ms.setUseCodeAsDefaultMessage(true);
         return ms;
+    }
+    
+    @Bean
+    public  com.jayway.jsonpath.Configuration jsonPathConfiguration() {
+		com.jayway.jsonpath.Configuration configuration = com.jayway.jsonpath.Configuration.builder()
+				.mappingProvider(new JacksonMappingProvider()).jsonProvider(new JacksonJsonProvider()).build();
+    	
+		return configuration;
+    	
     }
 
 
