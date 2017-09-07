@@ -3,28 +3,6 @@
  */
 package com.dell.isg.smi.service.server.configuration.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import javax.validation.Valid;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
 import com.dell.isg.smi.commons.model.common.Credential;
 import com.dell.isg.smi.service.server.configuration.NfsYAMLConfiguration;
@@ -49,8 +27,29 @@ import com.dell.isg.smi.service.server.configuration.validators.ServerAndNetworS
 import com.dell.isg.smi.service.server.configuration.validators.ServerRequestValidator;
 import com.dell.isg.smi.service.server.configuration.validators.SystemEraseValidator;
 import com.dell.isg.smi.wsman.model.XmlConfig;
-
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Muqeeth_Kowkab
@@ -521,7 +520,8 @@ public class ConfigurationController {
      */
     @RequestMapping(value = "/updateComponents", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "Update Components", nickname = "updateComponents", notes = "This operation updates the server system configuration", response = ServiceResponse.class)
-    public ResponseEntity<ServiceResponse> updateComponents(@RequestBody @Valid ComponentList request, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<ServiceResponse> updateComponents(@ApiParam(value = "ComponentList to Update in the Configuration", required = true) @RequestBody @Valid ComponentList request,
+                                                            BindingResult bindingResult) throws Exception {
         List<ServerComponent> updatedComponents = null;
         XmlConfig xmlConfig = null;
         try {
@@ -535,7 +535,7 @@ public class ConfigurationController {
             ServerAndNetworkShareRequest serverAndNetworkShareRequest = request.getServerAndNetworkShareRequest();
             Boolean initialized = configurationManager.initializeSCPService(serverAndNetworkShareRequest);
             if (initialized) {
-                updatedComponents = configurationManager.updateComponents(request);
+                updatedComponents = configurationManager.updateComponents(request, request.isForceUpdate());
                 String requestMsg = messageSource.getMessage(MessageKey.REQUEST_SUCCESS.getKey(), null, Locale.getDefault());
                 if (CollectionUtils.isEmpty(updatedComponents)) {
                     requestMsg = messageSource.getMessage("Request.components.already.updated", null, Locale.getDefault());

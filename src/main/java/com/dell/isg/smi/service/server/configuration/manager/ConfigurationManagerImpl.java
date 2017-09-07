@@ -3,35 +3,6 @@
  */
 package com.dell.isg.smi.service.server.configuration.manager;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import javax.xml.bind.Binder;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.eclipse.persistence.jaxb.JAXBContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ResourceBundleMessageSource;
-import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.EXPORT_MODE;
 import com.dell.isg.smi.adapter.server.config.ConfigEnum.SHARE_TYPES;
 import com.dell.isg.smi.adapter.server.config.IConfigAdapter;
@@ -47,10 +18,12 @@ import com.dell.isg.smi.service.server.configuration.model.ComponentPredicate;
 import com.dell.isg.smi.service.server.configuration.model.ConfigureBiosResult;
 import com.dell.isg.smi.service.server.configuration.model.DCIM_BIOSEnumeration;
 import com.dell.isg.smi.service.server.configuration.model.DCIM_BootSourceSetting;
+import com.dell.isg.smi.service.server.configuration.model.NestedComponent;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareImageRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShareRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
 import com.dell.isg.smi.service.server.configuration.model.ServerRequest;
+import com.dell.isg.smi.service.server.configuration.model.SubComponent;
 import com.dell.isg.smi.service.server.configuration.model.SystemBiosSettings;
 import com.dell.isg.smi.service.server.configuration.model.SystemConfiguration;
 import com.dell.isg.smi.service.server.configuration.model.SystemEraseRequest;
@@ -59,6 +32,34 @@ import com.dell.isg.smi.wsman.model.XmlConfig;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.TypeRef;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Muqeeth_Kowkab
@@ -67,7 +68,7 @@ import com.jayway.jsonpath.TypeRef;
 
 @Component
 public class ConfigurationManagerImpl implements IConfigurationManager {
-	
+
 	private static final String MESSAGE = "Message";
 
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurationManagerImpl.class.getName());
@@ -75,7 +76,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	private static final int TIME_DELAY_MILLISECONDS = 30000;
 
 	private static final int POLL_JOB_RETRY = 12;
-	
+
 	private static final String BIOS_SETUP_1_1 = "BIOS.Setup.1-1";
 
 	private static final String COMPLETED_WITH_NO_ERROR = "Completed with no error";
@@ -85,7 +86,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	private static final String BOOTSOURCE_BCV = "BCV";
 
 	private static final String BOOTSOURCE_IPL = "IPL";
-	
+
 	private static final String JOB_ID = "JobId";
 
 	@Autowired
@@ -93,10 +94,10 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 
 	@Autowired
 	IConfigAdapter configAdapter;
-	
+
 	@Autowired
 	IInventoryAdapter inventoryAdapter;
-	
+
 	@Autowired
 	Configuration jsonPathConfiguration;
 	
@@ -106,7 +107,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	@Autowired
     ResourceBundleMessageSource messageSource;
 
-	
+
 
 	public ConfigurationManagerImpl() {
 	}
@@ -310,8 +311,8 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	}
 
 	@Override
-	public List<ServerComponent> updateComponents(ComponentList request) throws Exception {
-		return updateConfigurationFile(request);
+	public List<ServerComponent> updateComponents(ComponentList request, boolean forceUpdate) throws Exception {
+		return updateConfigurationFile(request, forceUpdate);
 	}
 
 	/**
@@ -323,84 +324,32 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	 * @return the list of updated ServerComponents
 	 * @throws Exception
 	 */
-	private List<ServerComponent> updateConfigurationFile(ComponentList request) throws Exception {
+	private List<ServerComponent> updateConfigurationFile(ComponentList request, boolean forceUpdate) throws Exception {
 		List<ServerComponent> updatedServerComponents = null;
 		try {
-			if (null != request) {
+			if (null != request)
+			{
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				String filePathName = request.getServerAndNetworkShareRequest().getFilePathName();
 				logger.info("updateConfigurationFile: File Name from updated request:: " + filePathName);
 				File xml = new File(filePathName);
 				Document document = db.parse(xml);
-				JAXBContext jaxbContext = JAXBContextFactory.createContext(new Class[] { SystemConfiguration.class },
-						null);
+				document = updateConfigurationXMLXPath(document, request.getServerComponents(), forceUpdate);
 
-				Binder<Node> binder = jaxbContext.createBinder();
-				binder.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-				binder.setProperty(Marshaller.JAXB_FRAGMENT, true);
-
-				Node xmlNode = document.getDocumentElement();
-
-				SystemConfiguration systemConfig = (SystemConfiguration) binder.unmarshal(document);
-
-				updatedServerComponents = updateXMLSystemConfiguration(systemConfig, request);
-
-				if (CollectionUtils.isNotEmpty(updatedServerComponents)) {
-					xmlNode = binder.updateXML(systemConfig);
-					binder.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-					document.setNodeValue(xmlNode.getNodeValue());
-
-					TransformerFactory transformerFactory = TransformerFactory.newInstance();
-					Transformer transformer = transformerFactory.newTransformer();
-					DOMSource source = new DOMSource(document);
-					StreamResult result = new StreamResult(xml);
-					transformer.transform(source, result);
-					logger.info("updateConfigurationFile: updated writing to: " + filePathName);
-				}
-
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-		return updatedServerComponents;
-
-	}
-
-	/**
-	 * This Method updates the XML SystemConfiguration for a given
-	 * SystemConfiguration object and ComponentList request
-	 * 
-	 * @param systemConfig-
-	 *            The SystemConfiguration object
-	 * @param request-
-	 *            The ComponentList
-	 * @return the updated list of ServerComponents
-	 * @throws Exception
-	 */
-	private List<ServerComponent> updateXMLSystemConfiguration(SystemConfiguration systemConfig, ComponentList request)
-			throws Exception {
-		List<ServerComponent> updatedServerComponents = new LinkedList<ServerComponent>();
-		try {
-			if (null != systemConfig && null != request) {
-				List<ServerComponent> serverComponents = systemConfig.getServerComponents();
-
-				List<ServerComponent> requestServerComponents = request.getServerComponents();
-				
-				CollectionUtils.filter(requestServerComponents, componentPredicate.filterRequestServerComponents(serverComponents));
-				CollectionUtils.filter(requestServerComponents, componentPredicate.updateServerComponents(serverComponents));
-				
-				if (CollectionUtils.isNotEmpty(requestServerComponents)) {
-					updatedServerComponents.addAll(requestServerComponents);
-				}
+				TransformerFactory transformerFactory = TransformerFactory.newInstance();
+				Transformer transformer = transformerFactory.newTransformer();
+				DOMSource source = new DOMSource(document);
+				StreamResult result = new StreamResult(xml);
+				transformer.transform(source, result);
+				logger.info("updateConfigurationFile: updated writing to: " + filePathName);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 		return updatedServerComponents;
+
 	}
 
 	/*
@@ -556,7 +505,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 				ServerRequest serverRequest = request.getServerRequest();
 				WsmanCredentials wsmanCredentials = new WsmanCredentials(serverRequest.getServerIP(),
 						serverRequest.getServerUsername(), serverRequest.getServerPassword());
-											
+
 				SystemBiosSettings serverBiosSettings = getBiosSettings(request.getServerRequest());
 				
 				Map<String, String> filteredAttributesToUpdate = getFilteredAttributesToUpdate(request.getAttributes(), serverBiosSettings);
@@ -596,13 +545,13 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 						|| StringUtils.equals(bootSourceDisableResult, COMPLETED_WITH_NO_ERROR)) {
 					Map<String, String> cmdResult = configAdapter.createTargetConfigJob(wsmanCredentials, BIOS_SETUP_1_1,
 							request.getRebootJobType(), request.getScheduledStartTime(), request.getUntilTime());
-					
+
 					if (null != cmdResult && !cmdResult.isEmpty()) {
-						
+
 						if (cmdResult.containsKey(JOB_ID) && StringUtils.isNotBlank(cmdResult.get(JOB_ID))) {
 							String jobId = cmdResult.get(JOB_ID);
 							logger.info("configureBios: result: JobId: " + jobId);
-							biosResult.setJobId(jobId);							
+							biosResult.setJobId(jobId);
 							if (StringUtils.equals(request.getScheduledStartTime(), "TIME_NOW")) {
 								XmlConfig xmlConfig = (XmlConfig) configAdapter.pollJobStatus(wsmanCredentials, jobId, TIME_DELAY_MILLISECONDS, POLL_JOB_RETRY);
 								biosResult.setXmlConfig(xmlConfig);
@@ -612,7 +561,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 								xmlConfig.setResult(XmlConfig.JobStatus.SUCCESS.toString());
 								xmlConfig.setMessage(messageSource.getMessage("Request.ConfigureBios.Success.WithScheduledTime", null, Locale.getDefault()));
 								biosResult.setXmlConfig(xmlConfig);
-							}						
+							}
 						} else if (cmdResult.containsKey(MESSAGE) && StringUtils.isNotBlank(cmdResult.get(MESSAGE))) {
 							logger.info("No JobID retrieved from CreateTargedConfigJob");
 							String messageFromConfigJob = cmdResult.get(MESSAGE);
@@ -621,8 +570,8 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 							XmlConfig xmlConfig = new XmlConfig();
 							xmlConfig.setResult(XmlConfig.JobStatus.FAILURE.toString());
 							xmlConfig.setMessage(messageFromConfigJob);
-						}						
-					}				
+						}
+					}
 				}
 			}		
 		} catch (Exception e) {
@@ -752,4 +701,72 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		}
 		return result;
 	}
+
+	private Document updateConfigurationXMLXPath(Document xmlDocument, final List<ServerComponent> serverComponents, boolean forceUpdate)
+			throws XPathExpressionException
+	{
+		Document updatedDocument = xmlDocument.getOwnerDocument();
+		final String xpathFindComponent = "//SystemConfiguration/Component[@FQDD='%s']";
+		final String xpathFindComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Attribute[@Name='%s']";
+		final String xpathFindComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
+		final String xpathFindComponentSubComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Attribute[@Name='%s']";
+		final String xpathFindComponentSubComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
+        final String xpathFindComponentSubComponentNestedComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Component[@FQDD='%s']/Attribute[@Name='%s']";
+        final String xpathFindComponentSubComponentNestedComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
+
+		XPathFactory xPathfactory = XPathFactory.newInstance();
+		XPath xpath = xPathfactory.newXPath();
+		if (CollectionUtils.isNotEmpty(serverComponents)) {
+			for (ServerComponent component : serverComponents) {
+				if (CollectionUtils.isNotEmpty(component.getAttributes())) {
+						String attributeExpression = String.format(xpathFindComponentAttribute, component.getFQDD(), "%s");
+						String commentedElementExpression = String.format(xpathFindComponentAttributeComment, component.getFQDD(), "%s");
+						updateAttributesInDocument(xmlDocument, component.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
+				}
+				if (CollectionUtils.isNotEmpty(component.getSubComponents())) {
+					for (SubComponent subComponent : component.getSubComponents()) {
+						if (CollectionUtils.isNotEmpty(subComponent.getAttributes()))
+                        {
+                            String attributeExpression = String.format(xpathFindComponentSubComponentAttribute, component.getFQDD(), subComponent.getFQDD(), "%s");
+                            String commentedElementExpression = String.format(xpathFindComponentSubComponentAttributeComment, component.getFQDD(), subComponent.getFQDD(), "%s");
+                            updateAttributesInDocument(xmlDocument, subComponent.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
+                        }
+                        if (CollectionUtils.isNotEmpty(subComponent.getNestedComponents())) {
+                            for (NestedComponent nestedComponent : subComponent.getNestedComponents()) {
+                                String attributeExpression = String.format(xpathFindComponentSubComponentNestedComponentAttribute, component.getFQDD(), subComponent.getFQDD(), nestedComponent.getFQDD(), "%s");
+                                String commentedElementExpression = String.format(xpathFindComponentSubComponentNestedComponentAttributeComment, component.getFQDD(), subComponent.getFQDD(), nestedComponent.getFQDD(), "%s");
+                                updateAttributesInDocument(xmlDocument, nestedComponent.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
+                            }
+                        }
+					}
+				}
+			}
+		}
+		return xmlDocument;
+	}
+
+	private void updateAttributesInDocument(final Document xmlDocument,final List<Attribute> attributes, final XPath xpath, String attributeExpression, String attributeCommentExpression, boolean forceUpdate)
+			throws XPathExpressionException
+	{
+		if (CollectionUtils.isNotEmpty(attributes)) {
+			for (Attribute attribute : attributes) {
+				final String expression = String.format(attributeExpression, attribute.getName());
+				Node attributeElement = (Node) xpath.evaluate(expression, xmlDocument, XPathConstants.NODE);
+				if (attributeElement != null) {
+					attributeElement.setTextContent(attribute.getValue());
+				} else if (forceUpdate) {
+					final String commentExpression = String.format(attributeCommentExpression, attribute.getName());
+					Node commentNode = (Node) xpath.evaluate(commentExpression, xmlDocument, XPathConstants.NODE);
+					if (commentNode != null) {
+						final Node parent = commentNode.getParentNode();
+						Element newElement = xmlDocument.createElement("Attribute");
+						newElement.setAttribute("Name", attribute.getName());
+						newElement.setTextContent(attribute.getValue());
+						parent.replaceChild(newElement, commentNode);
+					}
+				}
+			}
+		}
+	}
+
 }

@@ -1,5 +1,8 @@
 /build/
 /bin/
+/out/
 /.classpath
 .gradle/
 .settings/
+.idea/
+*.iml
