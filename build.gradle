@@ -83,7 +83,7 @@ repositories {
 }
 
 dependencies {
-	compile "com.dell.isg.smi:wsmanlib:1.0.60"
+	compile "com.dell.isg.smi:wsmanlib:1.0.61"
 	compile "com.dell.isg.smi:wsmanclient:1.0.37"
     compile 'com.dell.isg.smi:commons-elm:1.0.76'
     compile 'com.dell.isg.smi:commons-utilities:1.0.32'
