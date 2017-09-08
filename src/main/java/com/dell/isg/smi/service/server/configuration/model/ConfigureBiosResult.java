@@ -5,6 +5,7 @@ package com.dell.isg.smi.service.server.configuration.model;
 
 import java.util.Map;
 
+import com.dell.isg.smi.wsman.model.XmlConfig;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -40,6 +41,9 @@ public class ConfigureBiosResult {
 	
 	@ApiModelProperty(value = "BIOS Boot Devices Disable Result Message", dataType = "string", required = false, position=8)
 	private String disableBootDevicesResult;
+	
+	@ApiModelProperty(value = "The XMLConfig. Which has the details of JobID, Message and Result returned from DELL Server", required = false, position=9)
+    private XmlConfig xmlConfig;
 
 	/**
 	 * @return the configBiosMessage
@@ -151,6 +155,20 @@ public class ConfigureBiosResult {
 	 */
 	public void setDisableBootDevicesResult(String disableBootDevicesResult) {
 		this.disableBootDevicesResult = disableBootDevicesResult;
+	}
+
+	/**
+	 * @return the xmlConfig
+	 */
+	public XmlConfig getXmlConfig() {
+		return xmlConfig;
+	}
+
+	/**
+	 * @param xmlConfig the xmlConfig to set
+	 */
+	public void setXmlConfig(XmlConfig xmlConfig) {
+		this.xmlConfig = xmlConfig;
 	}
 	
 	

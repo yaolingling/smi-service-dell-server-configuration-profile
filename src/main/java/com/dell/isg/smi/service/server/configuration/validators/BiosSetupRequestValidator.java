@@ -3,6 +3,11 @@
  */
 package com.dell.isg.smi.service.server.configuration.validators;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +18,7 @@ import org.springframework.validation.Validator;
 
 import com.dell.isg.smi.service.server.configuration.model.BiosSetupRequest;
 import com.dell.isg.smi.service.server.configuration.model.ServerRequest;
+import com.dell.isg.smi.service.server.configuration.utilities.ConfigurationUtils;
 
 /**
  * @author Muqeeth.Kowkab
@@ -51,6 +57,31 @@ public class BiosSetupRequestValidator implements Validator {
 				errors.popNestedPath();
 			}
 		}
+		
+		String scheduledStartTime = obj.getScheduledStartTime();
+		ValidationUtils.rejectIfEmptyOrWhitespace(errors, "scheduledStartTime", "Missing.ScheduledStartTime");
+		String untilTime = obj.getUntilTime();
+		
+		if (StringUtils.isNotBlank(scheduledStartTime) && !StringUtils.equals(scheduledStartTime, "TIME_NOW")
+				&& !ConfigurationUtils.validateTime(scheduledStartTime)){			
+			errors.rejectValue("scheduledStartTime", "Invalid.ScheduledStartTime.Format");
+		}
+		if (StringUtils.isNotBlank(untilTime) && !ConfigurationUtils.validateTime(untilTime)) {
+			errors.rejectValue("untilTime", "Invalid.UntilTime.Format");
+		}
+		
+		if (StringUtils.isNotBlank(scheduledStartTime) && StringUtils.isNotBlank(untilTime)
+				&& !ConfigurationUtils.validateEndTimeAfterStartTime(scheduledStartTime, untilTime)) {
+			errors.rejectValue("untilTime", "Invalid.StartEndTime.Range");
+		}
+		
+		int rebootJobType = obj.getRebootJobType();
+		
+		if (rebootJobType <=0 || rebootJobType >3) {
+			errors.rejectValue("untilTime", "Invalid.RebootJobType");
+		}
+		
+		
 	}
 
 }

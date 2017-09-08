@@ -32,6 +32,22 @@ public class BiosSetupRequest {
 	
 	@ApiModelProperty(value = "List of boot devices to disable", required = false, position=6)
 	private List<String> disableBootDevices;
+	
+	@ApiModelProperty(value = "Shall contain the requested reboot type: 1 - PowerCycle(cold boot)  2 - Graceful Reboot without forced shutdown 3 - Graceful Reboot with forced shutdown.", 
+			dataType = "uint16",required=true,
+			position=7)
+	private int rebootJobType;
+	
+	@ApiModelProperty(value = "Schedules the configuration job and the optional reboot job at the specified start time in the format: yyyymmddhhmmss. "
+			+ "A special value of TIME_NOW schedules the job(s) immediately."
+			+ "scheduledStartTime is w.r.t Server time to schedule.",required = true, position=8)
+	private String scheduledStartTime;
+	
+	@ApiModelProperty(value = "End time for the job execution in format: yyyymmddhhmmss. : If this parameter is not NULL, then ScheduledStartTime parameter shall also be specified."
+			+ " NOTE: This parameter has a dependency on ScheduledStartTime parameter. Both ScheduledStartTime and UntilTime parameters define a time window for scheduling the job(s). "
+			+ "After scheduling, jobs are executed within the time window."
+			+ "unitTime is w.r.t Server time to schedule", required=false, position=9)
+	private String untilTime;
 
 	/**
 	 * @return the serverRequest
@@ -115,6 +131,48 @@ public class BiosSetupRequest {
 	 */
 	public void setDisableBootDevices(List<String> disableBootDevices) {
 		this.disableBootDevices = disableBootDevices;
+	}
+
+	/**
+	 * @return the rebootJobType
+	 */
+	public int getRebootJobType() {
+		return rebootJobType;
+	}
+
+	/**
+	 * @param rebootJobType the rebootJobType to set
+	 */
+	public void setRebootJobType(int rebootJobType) {
+		this.rebootJobType = rebootJobType;
+	}
+
+	/**
+	 * @return the scheduledStartTime
+	 */
+	public String getScheduledStartTime() {
+		return scheduledStartTime;
+	}
+
+	/**
+	 * @param scheduledStartTime the scheduledStartTime to set
+	 */
+	public void setScheduledStartTime(String scheduledStartTime) {
+		this.scheduledStartTime = scheduledStartTime;
+	}
+
+	/**
+	 * @return the untilTime
+	 */
+	public String getUntilTime() {
+		return untilTime;
+	}
+
+	/**
+	 * @param untilTime the untilTime to set
+	 */
+	public void setUntilTime(String untilTime) {
+		this.untilTime = untilTime;
 	}
 
 }

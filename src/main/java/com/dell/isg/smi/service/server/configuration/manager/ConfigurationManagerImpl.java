@@ -67,7 +67,15 @@ import com.jayway.jsonpath.TypeRef;
 
 @Component
 public class ConfigurationManagerImpl implements IConfigurationManager {
+	
+	private static final String MESSAGE = "Message";
 
+	private static final Logger logger = LoggerFactory.getLogger(ConfigurationManagerImpl.class.getName());
+
+	private static final int TIME_DELAY_MILLISECONDS = 30000;
+
+	private static final int POLL_JOB_RETRY = 12;
+	
 	private static final String BIOS_SETUP_1_1 = "BIOS.Setup.1-1";
 
 	private static final String COMPLETED_WITH_NO_ERROR = "Completed with no error";
@@ -77,6 +85,8 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	private static final String BOOTSOURCE_BCV = "BCV";
 
 	private static final String BOOTSOURCE_IPL = "IPL";
+	
+	private static final String JOB_ID = "JobId";
 
 	@Autowired
 	NfsYAMLConfiguration yamlConfig;
@@ -96,7 +106,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	@Autowired
     ResourceBundleMessageSource messageSource;
 
-	private static final Logger logger = LoggerFactory.getLogger(ConfigurationManagerImpl.class.getName());
+	
 
 	public ConfigurationManagerImpl() {
 	}
@@ -546,7 +556,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 				ServerRequest serverRequest = request.getServerRequest();
 				WsmanCredentials wsmanCredentials = new WsmanCredentials(serverRequest.getServerIP(),
 						serverRequest.getServerUsername(), serverRequest.getServerPassword());
-							
+											
 				SystemBiosSettings serverBiosSettings = getBiosSettings(request.getServerRequest());
 				
 				Map<String, String> filteredAttributesToUpdate = getFilteredAttributesToUpdate(request.getAttributes(), serverBiosSettings);
@@ -584,12 +594,36 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 						|| StringUtils.equals(changeHddSeqResult, COMPLETED_WITH_NO_ERROR)
 						|| StringUtils.equals(bootSourceEnableResult, COMPLETED_WITH_NO_ERROR)
 						|| StringUtils.equals(bootSourceDisableResult, COMPLETED_WITH_NO_ERROR)) {
-					String jobId = configAdapter.createTargetConfigJob(wsmanCredentials, BIOS_SETUP_1_1);
-					logger.info("configureBios: createTargetConfigJob: result: JobId: " + jobId);
+					Map<String, String> cmdResult = configAdapter.createTargetConfigJob(wsmanCredentials, BIOS_SETUP_1_1,
+							request.getRebootJobType(), request.getScheduledStartTime(), request.getUntilTime());
 					
-					biosResult.setJobId(jobId);	
-					biosResult.setConfigBiosMessage(messageSource.getMessage("Request.ConfigureBios.Success", null, Locale.getDefault()));
-				}				
+					if (null != cmdResult && !cmdResult.isEmpty()) {
+						
+						if (cmdResult.containsKey(JOB_ID) && StringUtils.isNotBlank(cmdResult.get(JOB_ID))) {
+							String jobId = cmdResult.get(JOB_ID);
+							logger.info("configureBios: result: JobId: " + jobId);
+							biosResult.setJobId(jobId);							
+							if (StringUtils.equals(request.getScheduledStartTime(), "TIME_NOW")) {
+								XmlConfig xmlConfig = (XmlConfig) configAdapter.pollJobStatus(wsmanCredentials, jobId, TIME_DELAY_MILLISECONDS, POLL_JOB_RETRY);
+								biosResult.setXmlConfig(xmlConfig);
+							} else {
+								XmlConfig xmlConfig = new XmlConfig();
+								xmlConfig.setJobID(jobId);
+								xmlConfig.setResult(XmlConfig.JobStatus.SUCCESS.toString());
+								xmlConfig.setMessage(messageSource.getMessage("Request.ConfigureBios.Success.WithScheduledTime", null, Locale.getDefault()));
+								biosResult.setXmlConfig(xmlConfig);
+							}						
+						} else if (cmdResult.containsKey(MESSAGE) && StringUtils.isNotBlank(cmdResult.get(MESSAGE))) {
+							logger.info("No JobID retrieved from CreateTargedConfigJob");
+							String messageFromConfigJob = cmdResult.get(MESSAGE);
+							biosResult = new ConfigureBiosResult();
+							biosResult.setConfigBiosMessage(messageFromConfigJob);
+							XmlConfig xmlConfig = new XmlConfig();
+							xmlConfig.setResult(XmlConfig.JobStatus.FAILURE.toString());
+							xmlConfig.setMessage(messageFromConfigJob);
+						}						
+					}				
+				}
 			}		
 		} catch (Exception e) {
 			throw e;
@@ -647,7 +681,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	 */
 	private String updateAttributes(WsmanCredentials wsmanCredentials, Map<String, String> attributesToUpdate)
 			throws Exception {
-		String result = "No BIOS Attributes to change.";
+		String result = messageSource.getMessage("No.Bios.Attributes", null, Locale.getDefault());
 		try {
 			if (null != wsmanCredentials && null != attributesToUpdate && !attributesToUpdate.isEmpty()) {
 				result = configAdapter.updateBiosAttributes(wsmanCredentials, attributesToUpdate, false);
@@ -672,7 +706,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	 */
 	private String changeBootSourceState(WsmanCredentials wsmanCredentials, List<String> instanceIdList, boolean isEnabled,
 			String instanceType) throws Exception {
-		String result = "No Devices to enable or disable.";
+		String result = messageSource.getMessage("No.BootDevices.EnableDisable", null, Locale.getDefault());
 		try {
 			if (null != wsmanCredentials && CollectionUtils.isNotEmpty(instanceIdList)
 					&& StringUtils.isNotBlank(instanceType)) {
@@ -701,7 +735,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	 */
 	private String changeBootOrderSequence(WsmanCredentials wsmanCredentials, List<String> instanceIdList, String instanceType)
 			throws Exception {
-		String result = "No Devices to change in sequence.";
+		String result = messageSource.getMessage("No.Devices.ChangeSequenceOrder", null, Locale.getDefault());
 		try {
 			if (null != wsmanCredentials && CollectionUtils.isNotEmpty(instanceIdList)
 					&& StringUtils.isNotBlank(instanceType)) {

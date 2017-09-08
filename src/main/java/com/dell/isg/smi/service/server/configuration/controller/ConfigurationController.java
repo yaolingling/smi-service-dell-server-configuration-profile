@@ -444,7 +444,7 @@ public class ConfigurationController {
      */
     @RequestMapping(value = "/systemErase", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
     @ApiOperation(value = "System Erase", nickname = "import", notes = "This operation allow user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
-    public ResponseEntity<ServiceResponse> systemEarse(@RequestBody @Valid SystemEraseRequest request, BindingResult bindingResult) throws Exception {
+    public ResponseEntity<ServiceResponse> systemErase(@RequestBody @Valid SystemEraseRequest request, BindingResult bindingResult) throws Exception {
         try {
         	systemEraseValidator.validate(request, bindingResult);
             if (null == request || bindingResult.hasErrors()) {
