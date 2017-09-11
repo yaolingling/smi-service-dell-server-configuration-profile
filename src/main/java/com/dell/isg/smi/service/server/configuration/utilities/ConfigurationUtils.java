@@ -5,6 +5,10 @@ package com.dell.isg.smi.service.server.configuration.utilities;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 
@@ -171,4 +175,37 @@ public class ConfigurationUtils {
         }
 
     }
+
+
+	public static boolean validateTime(String scheduledStartTime) {
+		boolean isValid = true;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		dateFormat.setLenient(false);
+		try {
+			Date date = dateFormat.parse(scheduledStartTime);
+			logger.info("validateTime: date: " + date);
+		} catch (ParseException e) {
+			logger.error("exception in validateTime " + e.getMessage());
+			return false;
+			
+		}
+		return isValid;
+	}
+
+
+	public static boolean validateEndTimeAfterStartTime(String startTime, String endTime) {
+		boolean isValid = false;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		dateFormat.setLenient(false);
+		try {
+			Date startDate = dateFormat.parse(startTime);
+			Date endDate = dateFormat.parse(endTime);
+			if (endDate.after(startDate)) {
+				isValid = true;
+			}
+		} catch (ParseException e) {
+			logger.error("exception in validateEndTimeAfterStartTime " + e.getMessage());
+		}
+		return isValid;
+	}
 }
