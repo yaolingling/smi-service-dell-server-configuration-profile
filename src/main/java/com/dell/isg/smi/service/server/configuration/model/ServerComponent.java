@@ -71,9 +71,9 @@ public class ServerComponent {
 
 
     /**
-     * @param innerComponents the innerComponents to set
+     * @param subComponents the subComponents to set
      */
-    public void setInnerComponents(List<SubComponent> subComponents) {
+    public void setSubComponents(List<SubComponent> subComponents) {
         this.subComponents = subComponents;
     }
 

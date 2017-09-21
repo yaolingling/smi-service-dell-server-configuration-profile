@@ -26,7 +26,7 @@ public interface IConfigurationManager {
 
 	public List<ServerComponent> getComponents(ServerAndNetworkShareRequest request) throws Exception;
 
-	public List<ServerComponent> updateComponents(ComponentList request) throws Exception;
+	public List<ServerComponent> updateComponents(ComponentList request, boolean forceUpdate) throws Exception;
 
 	public Boolean initializeSCPService(ServerAndNetworkShareRequest request) throws Exception;
 

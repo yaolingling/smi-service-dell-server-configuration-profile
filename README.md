@@ -88,10 +88,11 @@ http://<<service ip>>:46018/api/1.0/server/configuration/import
 ~~~
 ___
 #### Update a Subset of Components for a Dell Server
-This operation allow user to update the server system components. 
+This operation allow user to update the server system components. The forceUpdate flag is used to force value changes
+to attributes regardless of if they are commented out in the exported configuration.
 ##### Example Post
 ~~~
-http://<<service ip>>:46018/api/1.0/server/configuration/updatecomponents
+http://<<service ip>>:46018/api/1.0/server/configuration/updatecomponents?forceUpdate=false
 {
   "componentNames": ["LifecycleController.Embedded.1", "RAID.Integrated.1-1"],
   "fileName": "FileName.xml",

@@ -21,12 +21,14 @@ import io.swagger.annotations.ApiModelProperty;
 public class ComponentList {
 
     @ApiModelProperty(value = "ServerAndNetworkShareRequest has the details of Network and DELL Servers", required = true)
-
     @NotNull(message = "serverAndNetworkShareRequest cannot be null")
     private ServerAndNetworkShareRequest serverAndNetworkShareRequest;
 
     @ApiModelProperty(value = "List of ServerComponents", required = true)
     private List<ServerComponent> serverComponents;
+
+    @ApiModelProperty(value = "Force Update of Attributes in Configuration if found")
+    private boolean forceUpdate;
 
 
     /**
@@ -60,4 +62,13 @@ public class ComponentList {
         this.serverComponents = serverComponents;
     }
 
+    public boolean isForceUpdate()
+    {
+        return forceUpdate;
+    }
+
+    public void setForceUpdate(final boolean forceUpdate)
+    {
+        this.forceUpdate = forceUpdate;
+    }
 }
