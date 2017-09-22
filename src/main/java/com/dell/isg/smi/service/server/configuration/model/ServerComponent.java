@@ -99,4 +99,37 @@ public class ServerComponent {
         this.fqdd = value;
     }
 
+    @Override
+    public boolean equals(final Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof ServerComponent))
+        {
+            return false;
+        }
+
+        final ServerComponent component = (ServerComponent) o;
+
+        if (!fqdd.equals(component.fqdd))
+        {
+            return false;
+        }
+        if (!getAttributes().equals(component.getAttributes()))
+        {
+            return false;
+        }
+        return getSubComponents().equals(component.getSubComponents());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = fqdd.hashCode();
+        result = 31 * result + getAttributes().hashCode();
+        result = 31 * result + getSubComponents().hashCode();
+        return result;
+    }
 }
