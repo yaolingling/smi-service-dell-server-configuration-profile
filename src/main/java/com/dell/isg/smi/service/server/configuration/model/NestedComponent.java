@@ -41,7 +41,7 @@ public class NestedComponent {
 
 
     /**
-     * @param attribute the attribute to set
+     * @param attributes the attribute to set
      */
     public void setAttributes(List<Attribute> attributes) {
         this.attributes = attributes;
@@ -69,4 +69,32 @@ public class NestedComponent {
         this.fqdd = value;
     }
 
+    @Override
+    public boolean equals(final Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof NestedComponent))
+        {
+            return false;
+        }
+
+        final NestedComponent that = (NestedComponent) o;
+
+        if (!fqdd.equals(that.fqdd))
+        {
+            return false;
+        }
+        return getAttributes().equals(that.getAttributes());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = fqdd.hashCode();
+        result = 31 * result + getAttributes().hashCode();
+        return result;
+    }
 }

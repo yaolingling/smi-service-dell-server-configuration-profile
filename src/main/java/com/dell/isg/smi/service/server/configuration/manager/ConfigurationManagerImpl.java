@@ -56,10 +56,12 @@ import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Muqeeth_Kowkab
@@ -335,7 +337,7 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 				logger.info("updateConfigurationFile: File Name from updated request:: " + filePathName);
 				File xml = new File(filePathName);
 				Document document = db.parse(xml);
-				document = updateConfigurationXMLXPath(document, request.getServerComponents(), forceUpdate);
+				updatedServerComponents = updateConfigurationXMLXPath(document, request.getServerComponents(), forceUpdate);
 
 				TransformerFactory transformerFactory = TransformerFactory.newInstance();
 				Transformer transformer = transformerFactory.newTransformer();
@@ -702,58 +704,97 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 		return result;
 	}
 
-	private Document updateConfigurationXMLXPath(Document xmlDocument, final List<ServerComponent> serverComponents, boolean forceUpdate)
-			throws XPathExpressionException
+	private List<ServerComponent> updateConfigurationXMLXPath(Document xmlDocument,
+															  final List<ServerComponent> serverComponents,
+															  boolean forceUpdate) throws XPathExpressionException
 	{
-		Document updatedDocument = xmlDocument.getOwnerDocument();
-		final String xpathFindComponent = "//SystemConfiguration/Component[@FQDD='%s']";
-		final String xpathFindComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Attribute[@Name='%s']";
-		final String xpathFindComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
-		final String xpathFindComponentSubComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Attribute[@Name='%s']";
-		final String xpathFindComponentSubComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
-        final String xpathFindComponentSubComponentNestedComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Component[@FQDD='%s']/Attribute[@Name='%s']";
-        final String xpathFindComponentSubComponentNestedComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
+		final Set<ServerComponent> serverComponentSet = new LinkedHashSet<>();
+		if (CollectionUtils.isNotEmpty(serverComponents))
+		{
+			final String xpathFindComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Attribute[@Name='%s']";
+			final String xpathFindComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
+			final String xpathFindComponentSubComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Attribute[@Name='%s']";
+			final String xpathFindComponentSubComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
+			final String xpathFindComponentSubComponentNestedComponentAttribute = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Component[@FQDD='%s']/Attribute[@Name='%s']";
+			final String xpathFindComponentSubComponentNestedComponentAttributeComment = "//SystemConfiguration/Component[@FQDD='%s']/Component[@FQDD='%s']/Component[@FQDD='%s']//comment()[contains(.,'Name=\"%s\"')]";
 
-		XPathFactory xPathfactory = XPathFactory.newInstance();
-		XPath xpath = xPathfactory.newXPath();
-		if (CollectionUtils.isNotEmpty(serverComponents)) {
-			for (ServerComponent component : serverComponents) {
-				if (CollectionUtils.isNotEmpty(component.getAttributes())) {
-						String attributeExpression = String.format(xpathFindComponentAttribute, component.getFQDD(), "%s");
-						String commentedElementExpression = String.format(xpathFindComponentAttributeComment, component.getFQDD(), "%s");
-						updateAttributesInDocument(xmlDocument, component.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
-				}
-				if (CollectionUtils.isNotEmpty(component.getSubComponents())) {
-					for (SubComponent subComponent : component.getSubComponents()) {
-						if (CollectionUtils.isNotEmpty(subComponent.getAttributes()))
-                        {
-                            String attributeExpression = String.format(xpathFindComponentSubComponentAttribute, component.getFQDD(), subComponent.getFQDD(), "%s");
-                            String commentedElementExpression = String.format(xpathFindComponentSubComponentAttributeComment, component.getFQDD(), subComponent.getFQDD(), "%s");
-                            updateAttributesInDocument(xmlDocument, subComponent.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
-                        }
-                        if (CollectionUtils.isNotEmpty(subComponent.getNestedComponents())) {
-                            for (NestedComponent nestedComponent : subComponent.getNestedComponents()) {
-                                String attributeExpression = String.format(xpathFindComponentSubComponentNestedComponentAttribute, component.getFQDD(), subComponent.getFQDD(), nestedComponent.getFQDD(), "%s");
-                                String commentedElementExpression = String.format(xpathFindComponentSubComponentNestedComponentAttributeComment, component.getFQDD(), subComponent.getFQDD(), nestedComponent.getFQDD(), "%s");
-                                updateAttributesInDocument(xmlDocument, nestedComponent.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
-                            }
-                        }
+			XPathFactory xPathfactory = XPathFactory.newInstance();
+			XPath xpath = xPathfactory.newXPath();
+			for (ServerComponent component : serverComponents)
+			{
+				boolean updated = false;
+				if (CollectionUtils.isNotEmpty(component.getAttributes()))
+				{
+					String attributeExpression = String.format(xpathFindComponentAttribute, component.getFQDD(), "%s");
+					String commentedElementExpression = String.format(xpathFindComponentAttributeComment, component.getFQDD(), "%s");
+					boolean changed = updateAttributesInDocument(xmlDocument, component.getAttributes(), xpath, attributeExpression, commentedElementExpression, forceUpdate);
+					if (changed) {
+						updated = true;
 					}
+				}
+				if (CollectionUtils.isNotEmpty(component.getSubComponents()))
+				{
+					for (SubComponent subComponent : component.getSubComponents())
+					{
+						if (CollectionUtils.isNotEmpty(subComponent.getAttributes()))
+						{
+							String attributeExpression = String.format(xpathFindComponentSubComponentAttribute, component.getFQDD(),
+																	   subComponent.getFQDD(), "%s");
+							String commentedElementExpression = String.format(xpathFindComponentSubComponentAttributeComment, component.getFQDD(),
+																			  subComponent.getFQDD(), "%s");
+							boolean changed = updateAttributesInDocument(xmlDocument,
+																		 subComponent.getAttributes(),
+																		 xpath,
+																		 attributeExpression,
+																		 commentedElementExpression,
+																		 forceUpdate);
+							if (changed) {
+								updated = true;
+							}
+						}
+						if (CollectionUtils.isNotEmpty(subComponent.getNestedComponents()))
+						{
+							for (NestedComponent nestedComponent : subComponent.getNestedComponents())
+							{
+								String attributeExpression = String.format(xpathFindComponentSubComponentNestedComponentAttribute,
+																		   component.getFQDD(), subComponent.getFQDD(), nestedComponent.getFQDD(),
+																		   "%s");
+								String commentedElementExpression = String.format(xpathFindComponentSubComponentNestedComponentAttributeComment,
+																				  component.getFQDD(), subComponent.getFQDD(), nestedComponent.getFQDD(),
+																				  "%s");
+								boolean changed = updateAttributesInDocument(xmlDocument,
+																			 nestedComponent.getAttributes(),
+																			 xpath,
+																			 attributeExpression,
+																			 commentedElementExpression,
+																			 forceUpdate);
+								if (changed) {
+									updated = true;
+								}
+							}
+						}
+					}
+				}
+				if (updated) {
+					serverComponentSet.add(component);
 				}
 			}
 		}
-		return xmlDocument;
+		return new ArrayList<>(serverComponentSet);
 	}
 
-	private void updateAttributesInDocument(final Document xmlDocument,final List<Attribute> attributes, final XPath xpath, String attributeExpression, String attributeCommentExpression, boolean forceUpdate)
+	private boolean updateAttributesInDocument(final Document xmlDocument,final List<Attribute> attributes, final XPath xpath, String attributeExpression, String attributeCommentExpression, boolean forceUpdate)
 			throws XPathExpressionException
 	{
+		boolean updated = false;
+		List<Attribute> removeAttributes = new ArrayList<>();
 		if (CollectionUtils.isNotEmpty(attributes)) {
 			for (Attribute attribute : attributes) {
 				final String expression = String.format(attributeExpression, attribute.getName());
 				Node attributeElement = (Node) xpath.evaluate(expression, xmlDocument, XPathConstants.NODE);
 				if (attributeElement != null) {
 					attributeElement.setTextContent(attribute.getValue());
+					updated = true;
 				} else if (forceUpdate) {
 					final String commentExpression = String.format(attributeCommentExpression, attribute.getName());
 					Node commentNode = (Node) xpath.evaluate(commentExpression, xmlDocument, XPathConstants.NODE);
@@ -763,10 +804,17 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 						newElement.setAttribute("Name", attribute.getName());
 						newElement.setTextContent(attribute.getValue());
 						parent.replaceChild(newElement, commentNode);
+						updated = true;
 					}
+				} else {
+					removeAttributes.add(attribute);
 				}
 			}
+			if (CollectionUtils.isNotEmpty(removeAttributes)) {
+				attributes.removeAll(removeAttributes);
+			}
 		}
+		return updated;
 	}
 
 }

@@ -104,4 +104,37 @@ public class SubComponent {
         this.fqdd = value;
     }
 
+    @Override
+    public boolean equals(final Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof SubComponent))
+        {
+            return false;
+        }
+
+        final SubComponent that = (SubComponent) o;
+
+        if (!fqdd.equals(that.fqdd))
+        {
+            return false;
+        }
+        if (!getAttributes().equals(that.getAttributes()))
+        {
+            return false;
+        }
+        return getNestedComponents().equals(that.getNestedComponents());
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = fqdd.hashCode();
+        result = 31 * result + getAttributes().hashCode();
+        result = 31 * result + getNestedComponents().hashCode();
+        return result;
+    }
 }

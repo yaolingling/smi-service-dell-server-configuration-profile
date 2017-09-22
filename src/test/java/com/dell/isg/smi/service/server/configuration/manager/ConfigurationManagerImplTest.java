@@ -7,6 +7,8 @@ import com.dell.isg.smi.service.server.configuration.model.ServerAndNetworkShare
 import com.dell.isg.smi.service.server.configuration.model.ServerComponent;
 import com.dell.isg.smi.service.server.configuration.model.SubComponent;
 import com.dell.isg.smi.service.server.configuration.model.SystemConfiguration;
+import org.apache.catalina.Server;
+import org.apache.commons.collections4.CollectionUtils;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -103,7 +105,31 @@ public class ConfigurationManagerImplTest {
             serverComponents.add(component);
             request.setServerComponents(serverComponents);
 
-            configManager.updateComponents(request, true);
+            List<ServerComponent> updatedComponents = configManager.updateComponents(request, true);
+
+            assertTrue(updatedComponents.size() == 2);
+            for (ServerComponent serverComponent : updatedComponents) {
+                if (CollectionUtils.isNotEmpty(serverComponent.getAttributes()))
+                {
+                    assertTrue(serverComponent.getAttributes().size() == 2);
+                }
+                if (CollectionUtils.isNotEmpty(serverComponent.getSubComponents())) {
+                    for (SubComponent sub : serverComponent.getSubComponents()) {
+                        if (CollectionUtils.isNotEmpty(sub.getAttributes()))
+                        {
+                            assertTrue(sub.getAttributes().size() == 2);
+                        }
+                        if (CollectionUtils.isNotEmpty(sub.getNestedComponents())) {
+                            for (NestedComponent nested : sub.getNestedComponents()) {
+                                if (CollectionUtils.isNotEmpty(nested.getAttributes()))
+                                {
+                                    assertTrue(nested.getAttributes().size() == 2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -242,7 +268,31 @@ public class ConfigurationManagerImplTest {
             serverComponents.add(component);
             request.setServerComponents(serverComponents);
 
-            configManager.updateComponents(request, false);
+            List<ServerComponent> updatedComponents = configManager.updateComponents(request, false);
+
+            assertTrue(updatedComponents.size() == 2);
+            for (ServerComponent serverComponent : updatedComponents) {
+                if (CollectionUtils.isNotEmpty(serverComponent.getAttributes()))
+                {
+                    assertTrue(serverComponent.getAttributes().size() == 1);
+                }
+                if (CollectionUtils.isNotEmpty(serverComponent.getSubComponents())) {
+                    for (SubComponent sub : serverComponent.getSubComponents()) {
+                        if (CollectionUtils.isNotEmpty(sub.getAttributes()))
+                        {
+                            assertTrue(sub.getAttributes().size() == 1);
+                        }
+                        if (CollectionUtils.isNotEmpty(sub.getNestedComponents())) {
+                            for (NestedComponent nested : sub.getNestedComponents()) {
+                                if (CollectionUtils.isNotEmpty(nested.getAttributes()))
+                                {
+                                    assertTrue(nested.getAttributes().size() == 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
