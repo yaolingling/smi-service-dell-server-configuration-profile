@@ -2,6 +2,8 @@
 
 Exports and imports/applies part or all of a server configuration profile for a Dell server.
 
+Copyright © 2017 Dell Inc. or its subsidiaries.  All Rights Reserved. 
+
 ### Purpose
 
 Provides a REST API retrieval and application of configuration data on Dell 11th Generation and newer servers.
