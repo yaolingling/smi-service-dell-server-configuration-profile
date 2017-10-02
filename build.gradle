@@ -307,7 +307,7 @@ bintray {
 		repo = "${bintrayRepo}"
 		name = apiVersion
 		userOrg = "${bintrayUserOrg}"
-		desc = 'Swagger API for Chassis Inventory Service.'
+		desc = 'Swagger API for Server Configuration Service.'
 		licenses = ['Apache-2.0']
 		vcsUrl = "${bintrayVcsUrl}"
 		publicDownloadNumbers = true
