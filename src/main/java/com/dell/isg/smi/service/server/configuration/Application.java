@@ -7,6 +7,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
 
 import java.util.Locale;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -25,11 +26,9 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 
 import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
 
 /**
  * @author Muqeeth_Kowkab
@@ -43,58 +42,54 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @ComponentScan("com.dell.isg.smi")
 public class Application extends WebMvcConfigurerAdapter {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
 
+	@Autowired
+	private BuildInfo buildInfo;
 
-    @Bean
-    public LocaleResolver localeResolver() {
-        SessionLocaleResolver slr = new SessionLocaleResolver();
-        slr.setDefaultLocale(Locale.ENGLISH);
-        return slr;
-    }
+	@Bean
+	public LocaleResolver localeResolver() {
+		SessionLocaleResolver slr = new SessionLocaleResolver();
+		slr.setDefaultLocale(Locale.ENGLISH);
+		return slr;
+	}
 
+	@Bean
+	public LocaleChangeInterceptor localeChangeInterceptor() {
+		LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
+		lci.setParamName("lang");
+		return lci;
+	}
 
-    @Bean
-    public LocaleChangeInterceptor localeChangeInterceptor() {
-        LocaleChangeInterceptor lci = new LocaleChangeInterceptor();
-        lci.setParamName("lang");
-        return lci;
-    }
+	@Bean
+	public ResourceBundleMessageSource messageSource() {
+		ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
+		ms.setBasename("validation");
+		ms.setUseCodeAsDefaultMessage(true);
+		return ms;
+	}
 
-
-    @Bean
-    public ResourceBundleMessageSource messageSource() {
-        ResourceBundleMessageSource ms = new ResourceBundleMessageSource();
-        ms.setBasename("validation");
-        ms.setUseCodeAsDefaultMessage(true);
-        return ms;
-    }
-    
-    @Bean
-    public  com.jayway.jsonpath.Configuration jsonPathConfiguration() {
+	@Bean
+	public com.jayway.jsonpath.Configuration jsonPathConfiguration() {
 		com.jayway.jsonpath.Configuration configuration = com.jayway.jsonpath.Configuration.builder()
 				.mappingProvider(new JacksonMappingProvider()).jsonProvider(new JacksonJsonProvider()).build();
-    	
+
 		return configuration;
-    	
-    }
 
+	}
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(localeChangeInterceptor());
-    }
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(localeChangeInterceptor());
+	}
 
+	@Bean
+	public Docket newsApi() {
+		return new Docket(DocumentationType.SWAGGER_2).groupName("serverConfiguration").apiInfo(new ApiInfoBuilder()
+				.title("SMI Microservice : Server Configuration Profile- WSMAN").version(buildInfo.toString()).build())
+				.select().paths(regex("/api.*")).build();
+	}
 
-    @Bean
-    public Docket newsApi() {
-        return new Docket(DocumentationType.SWAGGER_2).groupName("serverConfiguration").apiInfo(apiInfo()).select().paths(regex("/api.*")).build();
-    }
-
-
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder().title("SMI Microservice : Server Configuration Profile- WSMAN").description("Microservice For DELL Server Configuration Profile via WSMAN. It export the system configuration from the server to a file on a remote share. It also import the system configuration from a file located on remote share to server. It gives the features to see the DELL servers individual/All configured components in a readable JSON Format with the configured values. It update the server configuration by taking component names and respective attribute values. Complex components like BIOS, RAID, NIC of DELL servers can be easily configured through SCP microservice.").build();
-    }
 }

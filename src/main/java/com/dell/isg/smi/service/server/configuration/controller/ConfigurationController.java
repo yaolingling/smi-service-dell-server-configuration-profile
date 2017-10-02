@@ -43,7 +43,6 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -95,7 +94,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/export", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Export Configuration", nickname = "export", notes = "This operation allow user to export the system configuration in normal mode from the server to a file on a remote share", response = ServiceResponse.class)
+    @ApiOperation(value = "Export Configuration", nickname = "export", notes = "This operation allows a user to export the system configuration in normal mode from the server to a file on a remote share.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> exportConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -127,7 +126,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/clone", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Clone Configuration", nickname = "clone", notes = "This operation allow user to export the system configuration in clone mode from the server to a file on a remote share", response = ServiceResponse.class)
+    @ApiOperation(value = "Clone Configuration", nickname = "clone", notes = "This operation allows a user to export the system configuration in clone mode from the server to a file on a remote share.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> cloneConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -159,7 +158,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/replace", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Replace Configuration", nickname = "replace", notes = "This operation allow user to export the system configuration in replace mode from the server to a file on a remote share", response = ServiceResponse.class)
+    @ApiOperation(value = "Replace Configuration", nickname = "replace", notes = "This operation allows a user to export the system configuration in replace mode from the server to a file on a remote share.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> replaceConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -191,7 +190,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/factory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Factory Configuration", nickname = "replace", notes = "This operation allow user to export the factory setting system configuration from the server to a file on a remote share", response = ServiceResponse.class)
+    @ApiOperation(value = "Factory Configuration", nickname = "replace", notes = "This operation allows a user to export the factory setting system configuration from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> factoryConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -224,7 +223,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/preview", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Preview Import Configuration", nickname = "import", notes = "This operation allow user to preview the result of import system configuration from a file located on remote share to server", response = ServiceResponse.class)
+    @ApiOperation(value = "Preview Import Configuration", nickname = "import", notes = "This operation allows a user to preview the result of import system configuration from a file located on remote share to server", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> previewConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -255,7 +254,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/exportInventory", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Export Hardware Inventory", nickname = "export", notes = "This operation allow user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
+    @ApiOperation(value = "Export Hardware Inventory", nickname = "export", notes = "This operation allows a user to export the hardware inventory for attribute registry from the server to a file on a remote share", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> exportInventory(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -286,7 +285,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/import", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Import Configuration", nickname = "import", notes = "This operation allow user to import the system configuration from a file located on remote share to server", response = ServiceResponse.class)
+    @ApiOperation(value = "Import Configuration", nickname = "import", notes = "This operation allows a user to import the system configuration from a file located on remote share to server", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> importConfiguration(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -318,7 +317,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/image/backup", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Image Backup", nickname = "import", notes = "This operation allow user to take backup of configuration and firmware as Image from Server.", response = ServiceResponse.class)
+    @ApiOperation(value = "Image Backup", nickname = "import", notes = "This operation allows a user to take backup of configuration and firmware as Image from Server.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> backupImage(@RequestBody @Valid ServerAndNetworkShareImageRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareImageReqValidator.validate(request, bindingResult);
@@ -349,7 +348,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/image/restore", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Image Restore", nickname = "import", notes = "This operation allow user to restore the backed up image of configuration and firmware.", response = ServiceResponse.class)
+    @ApiOperation(value = "Image Restore", nickname = "import", notes = "This operation allows a user to restore the backed up image of configuration and firmware.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> restoreImage(@RequestBody @Valid ServerAndNetworkShareImageRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareImageReqValidator.validate(request, bindingResult);
@@ -380,7 +379,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/testShare", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Test Share", nickname = "import", notes = "This operation allow user to test the export /import share.", response = ServiceResponse.class)
+    @ApiOperation(value = "Test Share", nickname = "import", notes = "This operation allows a user to test the export /import share.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> testShare(@RequestBody @Valid ServerAndNetworkShareRequest request, BindingResult bindingResult) throws Exception {
         try {
         	serverAndNetworkShareValidator.validate(request, bindingResult);
@@ -411,7 +410,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/lcwipe", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Life Controller Wipe", nickname = "import", notes = "This operation allow user to to delete all configurations from the Lifecycle controller before the system 644 is retired..", response = ServiceResponse.class)
+    @ApiOperation(value = "Life Controller Wipe", nickname = "import", notes = "This operation allows a user to delete all configurations from the Lifecycle controller before the system 644 is retired..", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> lcwipe(@RequestBody @Valid Credential request, BindingResult bindingResult) throws Exception {
         try {
         	credentialValidator.validate(request, bindingResult);
@@ -442,7 +441,7 @@ public class ConfigurationController {
      * @throws Exception - On failure 
      */
     @RequestMapping(value = "/systemErase", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "System Erase", nickname = "import", notes = "This operation allow user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
+    @ApiOperation(value = "System Erase", nickname = "import", notes = "This operation allows a user to create granular, user selectable, categories to increase flexibility and improve the repurposing aspect of the existing System Wipe feature. List of components can be BIOS_RESET_DEFULT, EMBEDDED_DIAGNOSTICS_ERASE, OS_DRIVERPACK_ERASE, IDRAC_DEFAULT and LC_DATA_ERASE", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> systemErase(@RequestBody @Valid SystemEraseRequest request, BindingResult bindingResult) throws Exception {
         try {
         	systemEraseValidator.validate(request, bindingResult);
@@ -596,7 +595,7 @@ public class ConfigurationController {
     }
     
     @RequestMapping(value = "/configureBios", method = RequestMethod.POST, headers = "Accept=application/json", consumes = "application/json", produces = "application/json")
-    @ApiOperation(value = "Configure BIOS Settings", nickname = "configureBios", notes = "This operation allows to configure BIOS Settings", response = ServiceResponse.class)
+    @ApiOperation(value = "Configure BIOS Settings", nickname = "configureBios", notes = "This operation allows a user to configure BIOS Settings.", response = ServiceResponse.class)
     public ResponseEntity<ServiceResponse> configureBios(@RequestBody @Valid BiosSetupRequest request, BindingResult bindingResult) throws Exception {
     	try {
     		biosSetupRequestValidator.validate(request, bindingResult);
